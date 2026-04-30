@@ -164,6 +164,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       <button class="tier-filter-btn" id="tf-4" title="Show only T4 nodes" style="background:#A855F7;color:#fff;border-color:#A855F7">T4</button>
     </div>
     <button class="btn" id="btn-link">🔗 Link pages</button>
+    <button class="btn" id="btn-reset">Reset</button>
     <button class="btn pri" id="btn-share">Share ↗</button>
   </div>
 </header>
@@ -1326,6 +1327,8 @@ function overview(){
   render(); fitToView(); saveState(); updateStats();
 }
 function resetAll(){
+  const pwd=prompt('Enter password to reset:');
+  if(pwd!=='celtic2026'){ toast('Incorrect password'); return; }
   statuses={}; deleted={}; nodeOrder={}; mergeLinks=[]; linkMode=false; linkPending=null; layoutMode='vertical'; tiers={}; tierMode=false; tierFilter=null; notes={}; selectedNodeId=null;
   const linkBtn=document.getElementById('btn-link'); if(linkBtn) linkBtn.classList.remove('active');
   const tierBtn=document.getElementById('btn-tier'); if(tierBtn) tierBtn.classList.remove('active');
@@ -1361,6 +1364,7 @@ document.getElementById('btn-expand').addEventListener('click',expandAll);
 document.getElementById('btn-share').addEventListener('click',share);
 document.getElementById('btn-link').addEventListener('click',toggleLinkMode);
 document.getElementById('btn-tier').addEventListener('click',toggleTierMode);
+document.getElementById('btn-reset').addEventListener('click',resetAll);
 document.getElementById('btn-layout-h').addEventListener('click',()=>setLayout('horizontal'));
 document.getElementById('btn-layout-v').addEventListener('click',()=>setLayout('vertical'));
 document.getElementById('btn-layout-h').classList.toggle('active',layoutMode==='horizontal');
