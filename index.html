@@ -129,6 +129,14 @@ svg{width:100%;height:100%;display:block}
 }
 </style>
 </head>
+<!-- Supabase JS client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<script>
+// Supabase config
+const SUPABASE_URL = 'https://oehwvyppufnfywvnxmhg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9laHd2eXBwdWZuZnl3dm54bWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzU2NzMsImV4cCI6MjA5MzExMTY3M30.00moMmo3DOHuF7DqAxxB5VItlfde5AoDDCR3rocfNvQ';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
 <body>
 
 <header id="hdr">
@@ -1241,6 +1249,8 @@ function updateStats(){
 function saveState(){
   const payload={s:statuses,c:collapsed,l:labels,u:customs,d:deleted,o:nodeOrder,ml:mergeLinks,lm:layoutMode,ti:tiers,no:notes,tm:tierMode?1:0,tf:tierFilter};
   try{ history.replaceState(null,'','#'+btoa(unescape(encodeURIComponent(JSON.stringify(payload))))); }catch(_){}
+  // Save to Supabase for real-time sync
+  syncStateToSupabase(payload);
 }
 function loadState(){
   const hash=location.hash.slice(1);
@@ -1252,16 +1262,55 @@ function loadState(){
   }catch(_){ return false; }
 }
 
+// ── SUPABASE REAL-TIME SYNC ─────────────────────────────────────────────────
+const SITEMAP_ID = 'main';
+let supabaseInitialized = false;
+
+async function syncStateToSupabase(payload){
+  try{
+    await supabase.from('sitemap_state').upsert({id:SITEMAP_ID, state:payload}, {onConflict:'id'});
+  }catch(e){ console.error('Supabase sync error:',e); }
+}
+
+async function loadStateFromSupabase(){
+  try{
+    const {data,error}=await supabase.from('sitemap_state').select('state').eq('id',SITEMAP_ID).single();
+    if(error&&error.code!='PGRST116') console.error('Supabase load error:',error);
+    if(data&&data.state){
+      const p=data.state;
+      statuses=p.s||{}; collapsed=p.c||{}; labels=p.l||{}; customs=p.u||[]; deleted=p.d||{}; nodeOrder=p.o||{}; mergeLinks=p.ml||[]; layoutMode=p.lm||'horizontal'; tiers=p.ti||{}; notes=p.no||{}; tierMode=!!(p.tm); tierFilter=p.tf||null;
+      supabaseInitialized=true;
+      return true;
+    }
+  }catch(e){ console.error('Supabase init error:',e); }
+  return false;
+}
+
+function setupSupabaseRealtime(){
+  supabase.channel('sitemap_changes').on('postgres_changes',{
+    event:'UPDATE',schema:'public',table:'sitemap_state',filter:`id=eq.${SITEMAP_ID}`
+  },(payload)=>{
+    if(!supabaseInitialized) return;
+    const p=payload.new.state;
+    statuses=p.s||{}; collapsed=p.c||{}; labels=p.l||{}; customs=p.u||[]; deleted=p.d||{}; nodeOrder=p.o||{}; mergeLinks=p.ml||[]; layoutMode=p.lm||'horizontal'; tiers=p.ti||{}; notes=p.no||{}; tierMode=!!(p.tm); tierFilter=p.tf||null;
+    buildTree(); render(); updateStats(); updateNotesPanel();
+    toast('Synced with team');
+  }).subscribe();
+}
+
 // ── SHARE ─────────────────────────────────────────────────────────────────────
 function share(){
   saveState();
-  const url=location.href;
-  if(navigator.clipboard){ navigator.clipboard.writeText(url).then(()=>toast('Link copied to clipboard!')).catch(()=>fallbackCopy(url)); }
-  else { fallbackCopy(url); }
+  // For collaborative version, just show the GitHub Pages URL
+  const shareUrl = 'https://benwalshcelticandco.github.io/sitemap-review/';
+  if(navigator.clipboard){ 
+    navigator.clipboard.writeText(shareUrl).then(()=>toast('Collaborative URL copied! Share with team.')).catch(()=>fallbackCopy(shareUrl)); 
+  }
+  else { fallbackCopy(shareUrl); }
 }
 function fallbackCopy(url){
   const i=document.createElement('textarea'); i.value=url; document.body.appendChild(i); i.select();
-  try{ document.execCommand('copy'); toast('Link copied!'); }catch(_){ toast('Copy the URL from the address bar'); }
+  try{ document.execCommand('copy'); toast('Collaborative URL copied!'); }catch(_){ toast('Copy the URL from the address bar'); }
   document.body.removeChild(i);
 }
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
@@ -1344,17 +1393,23 @@ function resetAll(){
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 buildTree();
-const hadState=loadState();
-buildTree(); // rebuild after loading customs from state
 
-if(!hadState){
-  ROOT.children.forEach(s=>s.children.forEach(g=>{ collapsed[g.id]=true; }));
-}
-
-render();
-fitToView();
-setupPanZoom();
-updateStats();
+// Try to load from Supabase first, then fall back to URL hash
+(async () => {
+  const hadSupabaseState = await loadStateFromSupabase();
+  if(!hadSupabaseState){
+    const hadUrlState = loadState();
+    if(!hadUrlState){
+      ROOT.children.forEach(s=>s.children.forEach(g=>{ collapsed[g.id]=true; }));
+    }
+  }
+  buildTree();
+  render();
+  fitToView();
+  setupPanZoom();
+  updateStats();
+  setupSupabaseRealtime();
+})();
 
 document.getElementById('btn-overview').addEventListener('click',overview);
 document.getElementById('btn-expand').addEventListener('click',expandAll);
