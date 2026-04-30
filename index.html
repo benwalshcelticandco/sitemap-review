@@ -36,6 +36,7 @@ body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
 .btn.pri{background:#111;color:#fff;border-color:#111}
 .btn.pri:hover{background:#333}
 .btn.active{background:#fff3cd;color:#856404;border-color:#ffc107}
+.btn:disabled{opacity:0.5;cursor:default}
 
 #canvas{position:fixed;inset:52px 0 0 0;overflow:hidden;cursor:grab;touch-action:none}
 #canvas.dragging{cursor:grabbing}
@@ -155,7 +156,6 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     <div class="vsep"></div>
     <button class="btn" id="btn-overview">Overview</button>
     <button class="btn" id="btn-expand">Expand all</button>
-    <button class="btn" id="btn-reset">Reset</button>
     <button class="btn" id="btn-tier">◈ Tier</button>
     <div id="tier-filters">
       <button class="tier-filter-btn" id="tf-1" title="Show only T1 nodes" style="background:#EAB308;color:#fff;border-color:#EAB308">T1</button>
@@ -467,13 +467,13 @@ const SITEMAP = {"site":"celticandco.com","sections":[
 ]};
 
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-const NW   = 130;  // uniform node width (horizontal/top-down layout)
+const NW   = 130;
 const NH   = 28;
-const HG   = 14;   // horizontal gap between sibling nodes
-const VG   = 55;   // vertical gap between depth rows
-const NW_V = [116, 128, 158, 184]; // vertical mode node widths by depth
-const HG_V = 46;                    // vertical mode column gap
-const VG_V = 8;                     // vertical mode row gap
+const HG   = 14;
+const VG   = 55;
+const NW_V = [116, 128, 158, 184];
+const HG_V = 46;
+const VG_V = 8;
 const X_OFF_V = (()=>{ const a=[20]; for(let i=0;i<3;i++) a.push(a[i]+NW_V[i]+HG_V); return a; })();
 const CYCLE = [null,'keep','merge','cull'];
 const S_COLORS = {
@@ -487,10 +487,10 @@ const DOT_COLORS = {keep:'#4ade80',merge:'#fb923c',cull:'#f87171'};
 let statuses  = {};
 let collapsed = {};
 let labels    = {};
-let customs   = []; // [{id, parentId, label}]  — user-added nodes
-let deleted   = {}; // id -> true for hidden original nodes
-let nodeOrder = {}; // parentId -> [orderedChildIds]
-let mergeLinks = []; // [{id1, id2}]
+let customs   = [];
+let deleted   = {};
+let nodeOrder = {};
+let mergeLinks = [];
 let linkMode   = false;
 let linkPending = null;
 let editingId = null;
@@ -498,11 +498,11 @@ let nodeMap   = {};
 let activeClickTimer = null;
 let activeClickNodeId = null;
 let dragJustHappened = false;
-let layoutMode = 'horizontal'; // 'horizontal' | 'vertical'
-let tiers = {}; // nodeId -> 1|2|3|4
+let layoutMode = 'horizontal';
+let tiers = {};
 let tierMode = false;
-let tierFilter = null; // null = show all, 1|2|3|4 = show only that tier
-let notes = {}; // nodeId -> string[]
+let tierFilter = null;
+let notes = {};
 let selectedNodeId = null;
 
 // ── TREE MODEL ────────────────────────────────────────────────────────────────
@@ -535,7 +535,6 @@ function buildTree() {
     }
   }
 
-  // Inject custom nodes (in insertion order so parents precede children)
   for (const cn of customs) {
     const parent = nodeMap[cn.parentId];
     if (!parent) continue;
@@ -548,7 +547,6 @@ function buildTree() {
     if (depth >= 3) ALL_LEAVES.push(node);
   }
 
-  // Apply saved ordering
   function applyOrder(node) {
     const ord = nodeOrder[node.id];
     if (ord && node.children.length > 1) {
@@ -571,13 +569,12 @@ function doLayout(){ layoutMode==='vertical'?doLayoutV():doLayoutH(); }
 
 function doLayoutH(){
   let leafX=20;
-  const VG3=4; // tight gap between vertically stacked leaf nodes
+  const VG3=4;
   function lay(n){
     n.lw=NW; n.lh=NH;
     n.ly=n.depth*(NH+VG);
     const ch=vc(n);
     if(n.depth===2){
-      // Group node: occupy one horizontal slot; stack leaf children vertically
       n.lx=leafX; leafX+=NW+HG;
       const baseY=n.ly+NH+VG;
       ch.forEach((c,i)=>{
@@ -647,13 +644,11 @@ function render(){
   doLayout();
   scene.innerHTML='';
 
-  // Links
   const lg=el('g',{opacity:0.55});
   scene.appendChild(lg);
   visNodes.forEach(n=>{
     const children=vc(n);
     if(layoutMode==='horizontal' && n.depth===2 && children.length>0){
-      // Stacked leaves: single vertical trunk from group bottom-center to last leaf mid
       const cx=n.lx+n.lw/2;
       const last=children[children.length-1];
       lg.appendChild(el('path',{
@@ -675,7 +670,6 @@ function render(){
     }
   });
 
-  // Nodes
   const ng=el('g');
   scene.appendChild(ng);
 
@@ -684,16 +678,14 @@ function render(){
     const hasKids=n.children.length>0;
     const isColl=collapsed[n.id];
     const st=statuses[n.id];
-    const canAddChild=n.depth<=2; // only allow adding children at depth 0-2
+    const canAddChild=n.depth<=2;
 
     const g=el('g',{transform:`translate(${n.lx},${n.ly})`,cursor:'pointer'});
     ng.appendChild(g);
 
-    // Background
     g.appendChild(el('rect',{width:n.lw,height:n.lh,rx:5,fill,stroke,'stroke-width':n.isCustom?2:2,
       'stroke-dasharray':n.isCustom?'5,3':'none'}));
 
-    // Tier strip (left of node, visible when tierMode on)
     const TIER_COLORS={1:'#EAB308',2:'#3B82F6',3:'#22C55E',4:'#A855F7'};
     const nodeTier = tiers[n.id]||0;
     const tierPad = tierMode ? 34 : 0;
@@ -716,7 +708,6 @@ function render(){
         fill:'none',stroke:TIER_COLORS[nodeTier],'stroke-width':2,'pointer-events':'none'}));
     }
 
-    // Label
     const displayLabel=labels[n.id]!==undefined?labels[n.id]:n.label;
     const labelX = st ? n.lw/2+tierPad/2-9 : n.lw/2+tierPad/2;
     const lblW = n.lw - tierPad - (st?30:14);
@@ -726,10 +717,8 @@ function render(){
       'font-family':'system-ui,-apple-system,sans-serif','pointer-events':'none'
     }));
 
-    // Status dot
     if(st) g.appendChild(el('circle',{cx:n.lw-10,cy:n.lh/2,r:5,fill:DOT_COLORS[st],'pointer-events':'none'}));
 
-    // Collapse toggle
     if(hasKids){
       const tgPos=layoutMode==='vertical'?`translate(${n.lw},${n.lh/2})`:`translate(${n.lw/2},${n.lh})`;
       const tg=el('g',{transform:tgPos});
@@ -740,17 +729,14 @@ function render(){
       g.appendChild(tg);
     }
 
-    // Collect hover-reveal elements
     const hoverReveal=[];
 
-    // Drag-to-reorder: whole-node mousedown (depth > 0)
     if(n.depth>0){
       g.addEventListener('mousedown',e=>{
         if(e.button!==0) return;
         e.stopPropagation();
         startNodeDrag(e,n);
       });
-      // Grip icon — visual drag hint, pointer-events:none so events pass through to node
       const grip=txt('⠿',{x:9,y:n.lh/2,'font-size':12,
         'dominant-baseline':'middle','text-anchor':'middle',
         fill:'#bbb','font-family':'system-ui',opacity:0,'pointer-events':'none'});
@@ -758,7 +744,6 @@ function render(){
       hoverReveal.push(grip);
     }
 
-    // Add-child button (depth 0-2, shown on hover)
     if(canAddChild){
       const ax=n.lw+10;
       const addBtn=el('g',{transform:`translate(${ax},${n.lh/2})`,cursor:'pointer',opacity:0});
@@ -770,7 +755,6 @@ function render(){
       hoverReveal.push(addBtn);
     }
 
-    // Edit button (shown on hover, all nodes except root)
     if(n.depth>0){
       const editBtn=el('g',{transform:`translate(${n.lw-8},${n.lh/2})`,cursor:'pointer',opacity:0});
       editBtn.appendChild(el('circle',{r:6,fill:'#f8f7f3',stroke:'#c0bbb2','stroke-width':1.5}));
@@ -781,7 +765,6 @@ function render(){
       hoverReveal.push(editBtn);
     }
 
-    // Delete button (all nodes except root, shown on hover)
     if(n.depth>0){
       const delBtn=el('g',{transform:`translate(-8,${n.lh/2})`,cursor:'pointer',opacity:0});
       delBtn.appendChild(el('circle',{r:7,fill:'#fff0f0',stroke:'#fca5a5','stroke-width':1.5}));
@@ -800,7 +783,6 @@ function render(){
       hoverReveal.push(delBtn);
     }
 
-    // Hover: reveal buttons + URL tooltip
     const tip=document.getElementById('tip');
     g.addEventListener('mouseenter',e=>{
       hoverReveal.forEach(el=>el.setAttribute('opacity','1'));
@@ -812,31 +794,26 @@ function render(){
       tip.style.display='none';
     });
 
-    // Link-pending highlight ring
     if(n.id===linkPending){
       g.appendChild(el('rect',{x:-3,y:-3,width:n.lw+6,height:n.lh+6,rx:7,
         fill:'none',stroke:'#f97316','stroke-width':2.5,
         'stroke-dasharray':'5,3','pointer-events':'none'}));
     }
 
-    // Tier filter: dim nodes not matching active tier filter
     if(tierMode && tierFilter !== null){
       const nt=tiers[n.id]||0;
       if(nt !== tierFilter) g.setAttribute('opacity','0.12');
     }
 
-    // Click: timer-based single (status) / double-click (edit label)
     g.addEventListener('click',e=>{
       if(dragJustHappened) return;
       if(editingId) return;
       if(linkMode&&n.depth>0){ handleLinkModeClick(n); return; }
       selectNodeForNotes(n.id);
       if(activeClickTimer && activeClickNodeId===n.id){
-        // Second click on same node = double-click → open editor
         clearTimeout(activeClickTimer); activeClickTimer=null; activeClickNodeId=null;
         openEditor(n);
       } else {
-        // First click (or click on different node) → queue status cycle
         if(activeClickTimer){ clearTimeout(activeClickTimer); cycleStatus(nodeMap[activeClickNodeId]); }
         activeClickNodeId=n.id;
         activeClickTimer=setTimeout(()=>{ activeClickTimer=null; activeClickNodeId=null; cycleStatus(n); },220);
@@ -844,7 +821,6 @@ function render(){
     });
   });
 
-  // Merge link arcs
   if(mergeLinks.length>0){
     const mlg=el('g');
     scene.appendChild(mlg);
@@ -879,7 +855,6 @@ function render(){
 
 function moveTip(e){ const t=document.getElementById('tip'); t.style.left=(e.clientX+14)+'px'; t.style.top=(e.clientY-28)+'px'; }
 
-// ── STATUS CYCLING ────────────────────────────────────────────────────────────
 function cycleStatus(n){
   const cur=statuses[n.id]||null;
   const next=CYCLE[(CYCLE.indexOf(cur)+1)%CYCLE.length];
@@ -887,13 +862,11 @@ function cycleStatus(n){
   render(); saveState(); updateStats();
 }
 
-// ── ADD / DELETE CUSTOM NODES ─────────────────────────────────────────────────
 function addChild(parent){
   const id='custom-'+Date.now();
   customs.push({id,parentId:parent.id,label:'New item'});
-  delete collapsed[parent.id]; // expand parent
+  delete collapsed[parent.id];
   buildTree(); render(); saveState(); updateStats();
-  // Open editor after a short delay so the node is rendered
   setTimeout(()=>{ const nn=nodeMap[id]; if(nn) openEditor(nn); },60);
 }
 
@@ -910,7 +883,6 @@ function deleteCustom(id){
 }
 
 function deleteOriginal(id){
-  // Collect all descendant IDs from the current tree before removing
   const node=nodeMap[id];
   if(!node) return;
   function collectIds(n){ const ids=[n.id]; n.children.forEach(c=>ids.push(...collectIds(c))); return ids; }
@@ -919,13 +891,11 @@ function deleteOriginal(id){
   for(const did of toDelete){
     deleted[did]=true;
     delete statuses[did]; delete labels[did];
-    // remove any custom nodes whose parent is being deleted
     customs=customs.filter(c=>!toDelete.includes(c.parentId)&&c.id!==did);
   }
   buildTree(); render(); saveState(); updateStats();
 }
 
-// ── TIER MODE ─────────────────────────────────────────────────────────────────
 function toggleTierMode(){
   tierMode=!tierMode;
   const btn=document.getElementById('btn-tier');
@@ -949,7 +919,6 @@ function updateTierFilterBtns(){
   });
 }
 
-// ── NOTES ─────────────────────────────────────────────────────────────────────
 function selectNodeForNotes(id){
   selectedNodeId=id;
   updateNotesPanel();
@@ -962,7 +931,6 @@ function updateNotesPanel(){
   const n=nodeMap[selectedNodeId];
   const lbl=labels[selectedNodeId]||(n?n.label:'');
   
-  // Show editable node name
   const nameDiv=document.getElementById('notes-node-name');
   const nameDisplay=document.getElementById('notes-name-display');
   const nameInput=document.getElementById('notes-node-label');
@@ -1033,7 +1001,6 @@ function updateNotesPanel(){
   });
 }
 
-// ── LAYOUT TOGGLE ─────────────────────────────────────────────────────────────
 function setLayout(mode){
   layoutMode=mode;
   if(linkMode){ linkMode=false; linkPending=null; const lb=document.getElementById('btn-link'); if(lb) lb.classList.remove('active'); }
@@ -1043,7 +1010,6 @@ function setLayout(mode){
   render(); fitToView(); saveState();
 }
 
-// ── MERGE LINK FEATURE ────────────────────────────────────────────────────────
 function toggleLinkMode(){
   linkMode=!linkMode;
   linkPending=null;
@@ -1074,7 +1040,7 @@ function handleLinkModeClick(n){
 }
 
 function createMergeLink(id1,id2){
-  if(mergeLinks.some(l=>(l.id1===id1&&l.id2===id2)||(l.id1===id2&&l.id2===id1))){
+  if(mergeLinks.some(l=>(l.id1===id1&&l.id2===id2)||(l.id1===id2&&l.id2===id1)))){
     toast('These nodes are already linked'); return;
   }
   mergeLinks.push({id1,id2});
@@ -1090,8 +1056,7 @@ function deleteMergeLink(id1,id2){
   toast('Link removed');
 }
 
-// ── DRAG TO REORDER ───────────────────────────────────────────────────────────
-let dragState = null; // {node, startX, startY, isDragging, dropTarget}
+let dragState = null;
 
 function startNodeDrag(e, n) {
   cancelEdit();
@@ -1106,7 +1071,6 @@ function handleDragMove(e) {
     if (Math.sqrt(dx*dx+dy*dy) < 8) return;
     dragState.isDragging = true;
     if(activeClickTimer){ clearTimeout(activeClickTimer); activeClickTimer=null; }
-    // Show ghost
     const n = dragState.node;
     const gh = document.getElementById('drag-ghost');
     gh.textContent = labels[n.id]||n.label;
@@ -1117,7 +1081,6 @@ function handleDragMove(e) {
     gh.style.display = 'flex';
     document.body.style.cursor = 'grabbing';
   }
-  // Move ghost to cursor
   const gh = document.getElementById('drag-ghost');
   gh.style.left = (e.clientX - Math.round((dragState.node.lw*sc)/2)) + 'px';
   gh.style.top  = (e.clientY - Math.round((dragState.node.lh*sc)/2)) + 'px';
@@ -1137,12 +1100,10 @@ function findDropTarget(clientX, clientY) {
 
   let insertIdx = 0;
   if(layoutMode==='vertical'){
-    // Vertical layout: siblings stacked by Y — compare cursor Y
     for (let i = 0; i < siblings.length; i++) {
       if (clientY > siblings[i].ly*sc+ty+r.top + (siblings[i].lh*sc)/2) insertIdx = i+1;
     }
   } else {
-    // Horizontal layout: siblings spread by X — compare cursor X
     for (let i = 0; i < siblings.length; i++) {
       if (clientX > siblings[i].lx*sc+tx+r.left + (siblings[i].lw*sc)/2) insertIdx = i+1;
     }
@@ -1154,14 +1115,12 @@ function findDropTarget(clientX, clientY) {
   dragState.dropTarget = {parentId: parent.id, insertIdx};
 
   if(layoutMode==='vertical'){
-    // Horizontal drop indicator line
     let lineY;
     if (insertIdx <= 0) lineY = siblings[0].ly*sc+ty+r.top - 4;
     else if (insertIdx >= siblings.length) { const last=siblings[siblings.length-1]; lineY=last.ly*sc+ty+r.top+last.lh*sc+4; }
     else { const a=siblings[insertIdx-1],b=siblings[insertIdx]; lineY=((a.ly+a.lh)*sc+ty+r.top+b.ly*sc+ty+r.top)/2; }
     showDropLine(node.lx*sc+tx+r.left, lineY, Math.round(node.lw*sc), 3);
   } else {
-    // Vertical drop indicator line
     let lineX;
     if (insertIdx <= 0) lineX = siblings[0].lx*sc+tx+r.left - 4;
     else if (insertIdx >= siblings.length) { const last=siblings[siblings.length-1]; lineX=(last.lx+last.lw)*sc+tx+r.left+4; }
@@ -1183,7 +1142,6 @@ function handleDragEnd(e) {
   const dt = dragState.dropTarget;
   const node = dragState.node;
 
-  // Clean up visuals
   document.getElementById('drag-ghost').style.display='none';
   hideDropLine();
   document.body.style.cursor='';
@@ -1210,7 +1168,6 @@ function handleDragEnd(e) {
   buildTree(); render(); saveState();
 }
 
-// ── INLINE LABEL EDITOR ───────────────────────────────────────────────────────
 function openEditor(n){
   cancelEdit();
   const cv=document.getElementById('canvas');
@@ -1236,7 +1193,6 @@ function commitEdit(){
 }
 function cancelEdit(){ document.getElementById('editor').style.display='none'; editingId=null; }
 
-// ── STATS ─────────────────────────────────────────────────────────────────────
 function updateStats(){
   const k=ALL_LEAVES.filter(n=>statuses[n.id]==='keep').length;
   const m=ALL_LEAVES.filter(n=>statuses[n.id]==='merge').length;
@@ -1245,11 +1201,9 @@ function updateStats(){
   document.getElementById('stats').textContent=`${rev}/${ALL_LEAVES.length} pages · Keep ${k} · Merge ${m} · Cull ${c}`;
 }
 
-// ── STATE PERSISTENCE ─────────────────────────────────────────────────────────
 function saveState(){
   const payload={s:statuses,c:collapsed,l:labels,u:customs,d:deleted,o:nodeOrder,ml:mergeLinks,lm:layoutMode,ti:tiers,no:notes,tm:tierMode?1:0,tf:tierFilter};
   try{ history.replaceState(null,'','#'+btoa(unescape(encodeURIComponent(JSON.stringify(payload))))); }catch(_){}
-  // Save to Supabase for real-time sync
   syncStateToSupabase(payload);
 }
 function loadState(){
@@ -1262,7 +1216,6 @@ function loadState(){
   }catch(_){ return false; }
 }
 
-// ── SUPABASE REAL-TIME SYNC ─────────────────────────────────────────────────
 const SITEMAP_ID = 'main';
 let supabaseInitialized = false;
 
@@ -1298,10 +1251,8 @@ function setupSupabaseRealtime(){
   }).subscribe();
 }
 
-// ── SHARE ─────────────────────────────────────────────────────────────────────
 function share(){
   saveState();
-  // For collaborative version, just show the GitHub Pages URL
   const shareUrl = 'https://benwalshcelticandco.github.io/sitemap-review/';
   if(navigator.clipboard){ 
     navigator.clipboard.writeText(shareUrl).then(()=>toast('Collaborative URL copied! Share with team.')).catch(()=>fallbackCopy(shareUrl)); 
@@ -1315,7 +1266,6 @@ function fallbackCopy(url){
 }
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
 
-// ── PAN + ZOOM ────────────────────────────────────────────────────────────────
 let tx=0,ty=0,sc=1;
 let drag=false,dsx=0,dsy=0,dtx=0,dty=0;
 
@@ -1347,7 +1297,6 @@ function setupPanZoom(){
     if(dragState){ handleDragEnd(e); return; }
     drag=false; document.getElementById('canvas').classList.remove('dragging');
   });
-  // Touch
   let pt1=null,pt2=null,psc=1,ptx=0,pty=0;
   cv.addEventListener('touchstart',e=>{
     if(e.touches.length===1){ pt1=e.touches[0]; drag=true; dsx=pt1.clientX; dsy=pt1.clientY; dtx=tx; dty=ty; }
@@ -1369,7 +1318,6 @@ function setupPanZoom(){
   cv.addEventListener('touchend',()=>{ drag=false; pt2=null; });
 }
 
-// ── HEADER ACTIONS ────────────────────────────────────────────────────────────
 function expandAll(){ collapsed={}; render(); fitToView(); saveState(); updateStats(); }
 function overview(){
   collapsed={};
@@ -1378,23 +1326,20 @@ function overview(){
   render(); fitToView(); saveState(); updateStats();
 }
 function resetAll(){
-  if(!confirm('Clear all statuses, reordering and restore any deleted sections?')) return;
-  statuses={}; deleted={}; nodeOrder={}; mergeLinks=[]; linkMode=false; linkPending=null; layoutMode='horizontal'; tiers={}; tierMode=false; tierFilter=null; notes={}; selectedNodeId=null;
+  statuses={}; deleted={}; nodeOrder={}; mergeLinks=[]; linkMode=false; linkPending=null; layoutMode='vertical'; tiers={}; tierMode=false; tierFilter=null; notes={}; selectedNodeId=null;
   const linkBtn=document.getElementById('btn-link'); if(linkBtn) linkBtn.classList.remove('active');
   const tierBtn=document.getElementById('btn-tier'); if(tierBtn) tierBtn.classList.remove('active');
   const filtersDiv=document.getElementById('tier-filters'); if(filtersDiv) filtersDiv.classList.remove('show');
   updateTierFilterBtns();
-  document.getElementById('btn-layout-h').classList.add('active');
-  document.getElementById('btn-layout-v').classList.remove('active');
+  document.getElementById('btn-layout-h').classList.remove('active');
+  document.getElementById('btn-layout-v').classList.add('active');
   document.getElementById('canvas').style.cursor='grab';
   document.getElementById('notes-panel').style.display='none';
   buildTree(); render(); fitToView(); saveState(); updateStats();
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
 buildTree();
 
-// Try to load from Supabase first, then fall back to URL hash
 (async () => {
   const hadSupabaseState = await loadStateFromSupabase();
   if(!hadSupabaseState){
@@ -1413,22 +1358,18 @@ buildTree();
 
 document.getElementById('btn-overview').addEventListener('click',overview);
 document.getElementById('btn-expand').addEventListener('click',expandAll);
-document.getElementById('btn-reset').addEventListener('click',resetAll);
 document.getElementById('btn-share').addEventListener('click',share);
 document.getElementById('btn-link').addEventListener('click',toggleLinkMode);
 document.getElementById('btn-tier').addEventListener('click',toggleTierMode);
 document.getElementById('btn-layout-h').addEventListener('click',()=>setLayout('horizontal'));
 document.getElementById('btn-layout-v').addEventListener('click',()=>setLayout('vertical'));
-// Sync button active states after state load
 document.getElementById('btn-layout-h').classList.toggle('active',layoutMode==='horizontal');
 document.getElementById('btn-layout-v').classList.toggle('active',layoutMode==='vertical');
 document.getElementById('btn-tier').classList.toggle('active',tierMode);
-// Tier filter buttons
 [1,2,3,4].forEach(t=>{ const b=document.getElementById('tf-'+t); if(b) b.addEventListener('click',()=>setTierFilter(t)); });
 const tierFiltersDiv=document.getElementById('tier-filters');
 if(tierFiltersDiv) tierFiltersDiv.classList.toggle('show',tierMode);
 updateTierFilterBtns();
-// Notes panel
 document.getElementById('notes-add-btn').addEventListener('click',()=>{
   if(!selectedNodeId) return;
   if(!notes[selectedNodeId]) notes[selectedNodeId]=[];
