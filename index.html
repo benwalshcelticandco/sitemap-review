@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Celtic &amp; Co – Sitemap Review</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#f5f4f0}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+
+#hdr{
+  position:fixed;inset:0 0 auto 0;height:52px;z-index:10;
+  background:#fff;border-bottom:1px solid #e0ddd5;
+  display:flex;align-items:center;gap:10px;padding:0 14px;
+}
+#hdr h1{font-size:13px;font-weight:700;color:#111;white-space:nowrap;flex-shrink:0}
+.vsep{width:1px;height:22px;background:#e0ddd5;flex-shrink:0}
+.leg{display:flex;gap:5px;flex-shrink:0}
+.pill{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;
+  white-space:nowrap;border:2px solid transparent;
+}
+.pill-k{background:#dcfce7;color:#166534}
+.pill-m{background:#ffedd5;color:#c2410c}
+.pill-c{background:#fee2e2;color:#991b1b}
+#stats{font-size:11px;color:#777;white-space:nowrap;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.actions{display:flex;gap:6px;flex-shrink:0;margin-left:auto}
+.btn{
+  padding:4px 11px;border-radius:5px;border:1px solid #d4d0c8;
+  font-size:11px;font-weight:500;background:#fff;color:#444;cursor:pointer;
+  white-space:nowrap;transition:background .1s;
+}
+.btn:hover{background:#f0ede8}
+.btn.pri{background:#111;color:#fff;border-color:#111}
+.btn.pri:hover{background:#333}
+.btn.active{background:#fff3cd;color:#856404;border-color:#ffc107}
+
+#canvas{position:fixed;inset:52px 0 0 0;overflow:hidden;cursor:grab;touch-action:none}
+#canvas.dragging{cursor:grabbing}
+svg{width:100%;height:100%;display:block}
+
+#hint{
+  position:fixed;bottom:10px;left:12px;font-size:10px;color:#b0ada6;
+  pointer-events:none;user-select:none;
+}
+#toast{
+  position:fixed;bottom:14px;left:50%;transform:translateX(-50%) translateY(6px);
+  background:#111;color:#fff;padding:7px 16px;border-radius:8px;
+  font-size:12px;opacity:0;transition:opacity .2s,transform .2s;
+  pointer-events:none;z-index:50;white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#tip{
+  position:fixed;display:none;z-index:40;
+  background:rgba(20,20,20,.92);color:#fff;
+  padding:5px 10px;border-radius:6px;font-size:11px;
+  pointer-events:none;max-width:300px;word-break:break-all;line-height:1.4;
+}
+#editor{
+  position:fixed;z-index:30;display:none;
+  align-items:center;justify-content:center;
+}
+#editor-input{
+  width:100%;height:100%;border:2px solid #60a5fa;border-radius:5px;
+  padding:0 8px;font-family:system-ui,-apple-system,sans-serif;
+  background:#fff;outline:none;text-align:center;color:#111;
+  box-shadow:0 0 0 3px rgba(96,165,250,.2);
+}
+#key{
+  position:fixed;top:58px;left:14px;z-index:20;
+  background:#fff;border:1px solid #e0ddd5;border-radius:8px;
+  padding:10px 14px;box-shadow:0 2px 10px rgba(0,0,0,.08);
+  min-width:230px;
+}
+.key-title{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.key-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
+.key-row:last-child{margin-bottom:0}
+.key-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;margin-top:1px}
+.key-name{font-size:11px;font-weight:600;color:#222;width:42px;flex-shrink:0}
+.key-desc{font-size:11px;color:#777;line-height:1.35}
+
+#notes-panel{
+  position:fixed;top:252px;left:14px;z-index:20;
+  background:#fff;border:1px solid #e0ddd5;border-radius:8px;
+  padding:10px 14px;box-shadow:0 2px 10px rgba(0,0,0,.08);
+  width:244px;max-height:260px;overflow-y:auto;display:none;
+}
+#notes-panel .key-title{margin-bottom:4px}
+#notes-node-label{font-size:10px;color:#888;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#notes-node-name{font-size:12px;font-weight:600;color:#111;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+#notes-node-name input{flex:1;border:1px solid #ddd;border-radius:3px;padding:3px 6px;font-size:12px;font-family:system-ui,-apple-system,sans-serif;outline:none}
+#notes-node-name input:focus{border-color:#60a5fa;box-shadow:0 0 0 2px rgba(96,165,250,.15)}
+#notes-edit-icon{color:#aaa;cursor:pointer;font-size:11px;padding:2px}
+#notes-edit-icon:hover{color:#3b82f6}
+#notes-list{list-style:none;padding:0;margin:0 0 8px 0}
+#notes-list li{display:flex;align-items:flex-start;gap:4px;margin-bottom:5px}
+#notes-list .note-bullet{color:#aaa;flex-shrink:0;font-size:13px;line-height:1.3;margin-top:0}
+#notes-list .note-text{flex:1;font-size:11px;color:#333;outline:none;line-height:1.4;word-break:break-word;min-width:0;border:none;background:transparent;padding:0;font-family:system-ui,-apple-system,sans-serif}
+#notes-list .note-text:focus{background:#f8f7f3;border-radius:3px;padding:0 2px}
+#notes-list .note-del{border:none;background:none;color:#ccc;cursor:pointer;font-size:13px;padding:0;flex-shrink:0;line-height:1;margin-top:1px}
+#notes-list .note-del:hover{color:#ef4444}
+#notes-empty{font-size:11px;color:#bbb;font-style:italic;margin-bottom:6px}
+#notes-add-btn{font-size:11px;color:#3b82f6;background:none;border:1px dashed #93c5fd;border-radius:4px;padding:3px 8px;cursor:pointer;width:100%}
+#notes-add-btn:hover{background:#eff6ff}
+
+/* Drag ghost & drop indicator */
+#drag-ghost{
+  position:fixed;pointer-events:none;z-index:1000;display:none;
+  align-items:center;justify-content:center;
+  border:2px solid #60a5fa;border-radius:5px;
+  background:#eff6ff;color:#1e40af;
+  font-family:system-ui,-apple-system,sans-serif;
+  box-shadow:0 4px 16px rgba(0,0,0,.18);opacity:.9;
+  white-space:nowrap;text-align:center;
+}
+#drop-line{
+  position:fixed;pointer-events:none;z-index:999;display:none;
+  border-radius:2px;background:#3b82f6;
+  box-shadow:0 0 6px rgba(59,130,246,.5);
+}
+#tier-filters{display:none;gap:3px;align-items:center}
+#tier-filters.show{display:flex}
+.tier-filter-btn{
+  padding:3px 8px;border-radius:5px;border:2px solid transparent;
+  font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;
+  transition:opacity .15s,transform .1s;
+}
+</style>
+</head>
+<body>
+
+<header id="hdr">
+  <h1>Celtic &amp; Co · Sitemap</h1>
+  <div class="vsep"></div>
+  <div class="leg">
+    <span class="pill pill-k">● Keep</span>
+    <span class="pill pill-m">● Merge</span>
+    <span class="pill pill-c">● Cull</span>
+  </div>
+  <div class="vsep"></div>
+  <div id="stats">Loading…</div>
+  <div class="actions">
+    <button class="btn active" id="btn-layout-h">⟷ Horizontal</button>
+    <button class="btn" id="btn-layout-v">↕ Vertical</button>
+    <div class="vsep"></div>
+    <button class="btn" id="btn-overview">Overview</button>
+    <button class="btn" id="btn-expand">Expand all</button>
+    <button class="btn" id="btn-reset">Reset</button>
+    <button class="btn" id="btn-tier">◈ Tier</button>
+    <div id="tier-filters">
+      <button class="tier-filter-btn" id="tf-1" title="Show only T1 nodes" style="background:#EAB308;color:#fff;border-color:#EAB308">T1</button>
+      <button class="tier-filter-btn" id="tf-2" title="Show only T2 nodes" style="background:#3B82F6;color:#fff;border-color:#3B82F6">T2</button>
+      <button class="tier-filter-btn" id="tf-3" title="Show only T3 nodes" style="background:#22C55E;color:#fff;border-color:#22C55E">T3</button>
+      <button class="tier-filter-btn" id="tf-4" title="Show only T4 nodes" style="background:#A855F7;color:#fff;border-color:#A855F7">T4</button>
+    </div>
+    <button class="btn" id="btn-link">🔗 Link pages</button>
+    <button class="btn pri" id="btn-share">Share ↗</button>
+  </div>
+</header>
+
+<div id="canvas">
+  <svg id="svg" xmlns="http://www.w3.org/2000/svg"><g id="scene"></g></svg>
+</div>
+
+<div id="notes-panel">
+  <div class="key-title">Notes</div>
+  <div id="notes-node-name" style="display:none">
+    <span id="notes-name-display"></span>
+    <span id="notes-edit-icon" title="Edit name">✎</span>
+  </div>
+  <div id="notes-node-label"></div>
+  <div id="notes-empty">No notes yet.</div>
+  <ul id="notes-list"></ul>
+  <button id="notes-add-btn">+ Add note</button>
+</div>
+<div id="hint">Click node to set status · Double-click or hover ＋✎ to rename · Hover for ＋ add / × delete · Drag node to reorder · 🔗 Link pages to merge · Scroll/drag canvas to navigate</div>
+<div id="toast"></div>
+<div id="tip"></div>
+<div id="editor"><input id="editor-input" type="text" autocomplete="off" spellcheck="false"></div>
+<div id="drag-ghost"></div>
+<div id="drop-line"></div>
+<div id="key">
+  <div class="key-title">Status key</div>
+  <div class="key-row"><span class="key-dot" style="background:#4ade80"></span><span class="key-name">Keep</span><span class="key-desc">Migrate this page to Shopify as-is</span></div>
+  <div class="key-row"><span class="key-dot" style="background:#fb923c"></span><span class="key-name">Merge</span><span class="key-desc">Combine with another page</span></div>
+  <div class="key-row"><span class="key-dot" style="background:#f87171"></span><span class="key-name">Cull</span><span class="key-desc">Remove — don't include in new site</span></div>
+  <div style="margin-top:9px;padding-top:9px;border-top:1px solid #ede9e2;font-size:10px;color:#999;line-height:1.5">
+    <strong style="color:#777">Click</strong> a node to cycle its colour<br>
+    <strong style="color:#777">Double-click</strong> to rename a node<br>
+    <strong style="color:#777">Hover</strong> to reveal ＋ add / × delete · <strong style="color:#777">Drag</strong> any node to reorder · <strong style="color:#777">🔗 Link pages</strong> to connect two pages for merging
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const SITEMAP = {"site":"celticandco.com","sections":[
+{"id":"holiday","label":"The Holiday Shop","color":"#C08040","groups":[
+  {"label":"Holiday shop","pages":[
+    {"id":"hol-all","label":"Shop all","url":"/holiday-shop"},
+    {"id":"hol-clothing","label":"Clothing","url":"/holiday-shop/clothing"},
+    {"id":"hol-footwear","label":"Footwear","url":"/holiday-shop/footwear"}
+  ]}
+]},
+{"id":"new","label":"New Arrivals","color":"#3D9DB5","groups":[
+  {"label":"New in","pages":[
+    {"id":"new-all","label":"Shop all new arrivals","url":"/new-arrivals"},
+    {"id":"new-clothing","label":"New in clothing","url":"/new-arrivals/clothing"},
+    {"id":"new-footwear","label":"New in footwear","url":"/new-arrivals/footwear"}
+  ]},
+  {"label":"The Edit collection","pages":[
+    {"id":"edit-coastline","label":"Coastline Blues","url":"/collections/coastline-blues"},
+    {"id":"edit-golden","label":"Golden Grove","url":"/collections/golden-grove"},
+    {"id":"edit-botanical","label":"Botanical Blends","url":"/collections/botanical-blends"},
+    {"id":"edit-sorbet","label":"Sorbet Sunsets","url":"/collections/sorbet-sunsets"},
+    {"id":"edit-yarns","label":"Summer Yarns","url":"/collections/summer-yarns"},
+    {"id":"edit-teal","label":"Transformative Teal","url":"/collections/transformative-teal"},
+    {"id":"edit-refined","label":"Refined Silhouettes","url":"/collections/refined-silhouettes"}
+  ]},
+  {"label":"Sister brands","pages":[
+    {"id":"new-kettlewell","label":"Kettlewell","url":"https://www.kettlewell.co.uk"},
+    {"id":"new-turtledoves","label":"Turtle Doves","url":"https://www.turtledoves.co.uk"}
+  ]}
+]},
+{"id":"women","label":"Women","color":"#5DCAA5","groups":[
+  {"label":"Clothing","pages":[
+    {"id":"w-clothing-all","label":"Shop all clothing","url":"/category/womens/clothing"},
+    {"id":"w-knitwear","label":"Knitwear","url":"/category/womens/clothing/knitwear"},
+    {"id":"w-jumpers","label":"Jumpers","url":"/category/womens/clothing/jumpers"},
+    {"id":"w-cardigans","label":"Cardigans","url":"/category/womens/clothing/cardigans"},
+    {"id":"w-dresses","label":"Dresses","url":"/category/womens/clothing/dresses"},
+    {"id":"w-jumpsuits","label":"Jumpsuits","url":"/category/womens/clothing/jumpsuits"},
+    {"id":"w-kilts","label":"Kilts & skirts","url":"/category/womens/clothing/kilts-skirts"},
+    {"id":"w-tops","label":"Tops","url":"/category/womens/clothing/tops"},
+    {"id":"w-denim","label":"Denim","url":"/category/womens/clothing/denim"},
+    {"id":"w-trousers","label":"Trousers & shorts","url":"/category/womens/clothing/trousers-shorts"},
+    {"id":"w-loungewear","label":"Loungewear","url":"/category/womens/clothing/loungewear"},
+    {"id":"w-linen","label":"Linen","url":"/category/womens/clothing/linen"},
+    {"id":"w-organic","label":"Organic cotton","url":"/category/womens/clothing/organic-cotton"},
+    {"id":"w-bestsellers","label":"Bestsellers","url":"/category/womens/bestsellers"}
+  ]},
+  {"label":"Footwear","pages":[
+    {"id":"w-footwear-all","label":"Shop all footwear","url":"/category/womens/footwear"},
+    {"id":"w-clogs","label":"Clogs","url":"/category/womens/footwear/clogs"},
+    {"id":"w-sandals","label":"Sandals","url":"/category/womens/footwear/sandals"},
+    {"id":"w-trainers","label":"Trainers & shoes","url":"/category/womens/footwear/trainers-shoes"},
+    {"id":"w-leather-boots","label":"Leather boots","url":"/category/womens/footwear/leather-boots"},
+    {"id":"w-sheepskin-boots","label":"Sheepskin boots","url":"/category/womens/footwear/sheepskin-boots"},
+    {"id":"w-sheepskin-slippers","label":"Sheepskin slippers","url":"/category/womens/footwear/sheepskin-slippers"},
+    {"id":"w-care","label":"Care & cleaning","url":"/category/womens/footwear/care"}
+  ]},
+  {"label":"Outerwear","pages":[
+    {"id":"w-outerwear-all","label":"Shop all outerwear","url":"/category/womens/outerwear"},
+    {"id":"w-jackets","label":"Jackets","url":"/category/womens/outerwear/jackets"},
+    {"id":"w-coats","label":"Coats","url":"/category/womens/outerwear/coats"},
+    {"id":"w-gilets","label":"Gilets","url":"/category/womens/outerwear/gilets"},
+    {"id":"w-sheepskin-out","label":"Sheepskin","url":"/category/womens/outerwear/sheepskin"},
+    {"id":"w-reversible","label":"Reversible","url":"/category/womens/outerwear/reversible"},
+    {"id":"w-waxed","label":"Waxed cotton","url":"/category/womens/outerwear/waxed-cotton"},
+    {"id":"w-leather-jackets","label":"Leather","url":"/category/womens/outerwear/leather"},
+    {"id":"w-wool-jackets","label":"Wool","url":"/category/womens/outerwear/wool"}
+  ]},
+  {"label":"Accessories","pages":[
+    {"id":"w-acc-all","label":"Shop all accessories","url":"/category/womens/accessories"},
+    {"id":"w-bags","label":"Bags & luggage","url":"/category/womens/accessories/bags"},
+    {"id":"w-hats","label":"Hats","url":"/category/womens/accessories/hats"},
+    {"id":"w-scarves","label":"Scarves","url":"/category/womens/accessories/scarves"},
+    {"id":"w-ponchos","label":"Ponchos & shawls","url":"/category/womens/accessories/ponchos"},
+    {"id":"w-gloves","label":"Gloves","url":"/category/womens/accessories/gloves"},
+    {"id":"w-socks","label":"Socks","url":"/category/womens/accessories/socks"},
+    {"id":"w-sheepskin-acc","label":"Sheepskin","url":"/category/womens/accessories/sheepskin"},
+    {"id":"w-cashmere","label":"Cashmere","url":"/category/womens/accessories/cashmere"}
+  ]}
+]},
+{"id":"knitwear","label":"Knitwear","color":"#5DCAA5","groups":[
+  {"label":"By style","pages":[
+    {"id":"kw-jumpers","label":"Jumpers","url":"/knitwear/jumpers"},
+    {"id":"kw-cardigans","label":"Cardigans","url":"/knitwear/cardigans"}
+  ]},
+  {"label":"By yarn","pages":[
+    {"id":"kw-geelong","label":"Geelong wool","url":"/knitwear/geelong-wool"},
+    {"id":"kw-donegal","label":"Donegal wool","url":"/knitwear/donegal-wool"},
+    {"id":"kw-merino","label":"Merino wool","url":"/knitwear/merino-wool"},
+    {"id":"kw-alpaca","label":"Alpaca wool","url":"/knitwear/alpaca-wool"}
+  ]}
+]},
+{"id":"sandals","label":"Sandals","color":"#5DCAA5","groups":[
+  {"label":"Sandal styles","pages":[
+    {"id":"san-closed","label":"Closed toe","url":"/sandals/closed-toe"},
+    {"id":"san-double","label":"Double strap","url":"/sandals/double-strap"},
+    {"id":"san-triple","label":"Triple strap","url":"/sandals/triple-strap"},
+    {"id":"san-gladiator","label":"Gladiator","url":"/sandals/gladiator"},
+    {"id":"san-crossover","label":"Crossover","url":"/sandals/crossover"},
+    {"id":"san-fishermans","label":"Fisherman's","url":"/sandals/fishermans"},
+    {"id":"san-wedge","label":"Wedge","url":"/sandals/wedge"},
+    {"id":"san-clogs","label":"Clogs","url":"/sandals/clogs"}
+  ]}
+]},
+{"id":"dresses","label":"Dresses","color":"#5DCAA5","groups":[
+  {"label":"Featured nav link","pages":[
+    {"id":"dr-all","label":"Shop all dresses","url":"/category/womens/clothing/dresses"}
+  ]}
+]},
+{"id":"tops","label":"Tops","color":"#5DCAA5","groups":[
+  {"label":"Featured nav link","pages":[
+    {"id":"tp-all","label":"Shop all tops","url":"/category/womens/clothing/tops"}
+  ]}
+]},
+{"id":"men","label":"Men","color":"#378ADD","groups":[
+  {"label":"Clothing & outerwear","pages":[
+    {"id":"m-all","label":"Shop all men's","url":"/category/mens"},
+    {"id":"m-knitwear","label":"Knitwear","url":"/category/mens/knitwear"},
+    {"id":"m-sweats","label":"Sweats","url":"/category/mens/sweats"},
+    {"id":"m-coats","label":"Coats & jackets","url":"/category/mens/coats-jackets"}
+  ]},
+  {"label":"Footwear","pages":[
+    {"id":"m-footwear-all","label":"Shop all footwear","url":"/category/mens/footwear"},
+    {"id":"m-sheepskin-slippers","label":"Sheepskin slippers","url":"/category/mens/sheepskin-slippers"},
+    {"id":"m-sheepskin-boots","label":"Sheepskin boots","url":"/category/mens/sheepskin-boots"},
+    {"id":"m-leather-boots","label":"Leather boots","url":"/category/mens/leather-boots"}
+  ]},
+  {"label":"Accessories","pages":[
+    {"id":"m-acc-all","label":"Shop all accessories","url":"/category/mens/accessories"},
+    {"id":"m-scarves","label":"Scarves","url":"/category/mens/scarves"},
+    {"id":"m-gloves","label":"Gloves","url":"/category/mens/gloves"},
+    {"id":"m-socks","label":"Socks","url":"/category/mens/socks"},
+    {"id":"m-bags","label":"Bags & luggage","url":"/category/mens/bags"},
+    {"id":"m-hats","label":"Hats","url":"/category/mens/hats"}
+  ]}
+]},
+{"id":"home","label":"Home","color":"#7F77DD","groups":[
+  {"label":"Homeware","pages":[
+    {"id":"h-all","label":"Shop all homeware","url":"/home-living/homeware"},
+    {"id":"h-rugs","label":"Sheepskin rugs","url":"/home-living/homeware/sheepskin-rugs"},
+    {"id":"h-throws","label":"Throws & blankets","url":"/home-living/homeware/throws-blankets"},
+    {"id":"h-beanbags","label":"Beanbags","url":"/home-living/homeware/beanbags"},
+    {"id":"h-pets","label":"Pets","url":"/home-living/homeware/pets"}
+  ]},
+  {"label":"Accessories","pages":[
+    {"id":"ha-all","label":"Shop all accessories","url":"/home-living/home-accessories"},
+    {"id":"ha-sheepskin","label":"Sheepskin","url":"/home-living/home-accessories/sheepskin"},
+    {"id":"ha-care","label":"Care & cleaning","url":"/home-living/home-accessories/care"},
+    {"id":"ha-offcuts","label":"Sheepskin offcuts","url":"/home-living/home-accessories/offcuts"},
+    {"id":"ha-vouchers","label":"Gift vouchers","url":"/home-living/home-accessories/gift-vouchers"}
+  ]},
+  {"label":"Kids & babies","pages":[
+    {"id":"h-kids-all","label":"Shop all kids","url":"/kids"},
+    {"id":"h-kids-boots","label":"Sheepskin boots","url":"/kids/sheepskin-boots"},
+    {"id":"h-kids-slippers","label":"Sheepskin slippers","url":"/kids/sheepskin-slippers"},
+    {"id":"h-babies","label":"Babies","url":"/kids/babies"}
+  ]}
+]},
+{"id":"kids","label":"Kids","color":"#F0997B","groups":[
+  {"label":"Kids & babies","pages":[
+    {"id":"k-all","label":"Shop all kids","url":"/kids"},
+    {"id":"k-sheepskin-boots","label":"Sheepskin boots","url":"/kids/sheepskin-boots"},
+    {"id":"k-sheepskin-slippers","label":"Sheepskin slippers","url":"/kids/sheepskin-slippers"},
+    {"id":"k-babies-footwear","label":"Babies footwear","url":"/kids/babies/footwear"},
+    {"id":"k-accessories","label":"Accessories","url":"/kids/accessories"}
+  ]}
+]},
+{"id":"offers","label":"Outlet","color":"#D85A30","groups":[
+  {"label":"By category","pages":[
+    {"id":"o-dresses","label":"Dresses","url":"/category/offers/clearance/dresses"},
+    {"id":"o-knitwear","label":"Knitwear","url":"/category/offers/clearance/knitwear"},
+    {"id":"o-tops","label":"Tops","url":"/category/offers/clearance/tops"},
+    {"id":"o-bottoms","label":"Bottoms","url":"/category/offers/clearance/bottoms"},
+    {"id":"o-outerwear","label":"Outerwear","url":"/category/offers/clearance/outerwear"},
+    {"id":"o-footwear","label":"Footwear","url":"/category/offers/clearance/footwear"},
+    {"id":"o-under100","label":"Under £100","url":"/category/offers/under-100"},
+    {"id":"o-brit","label":"British made","url":"/category/offers/british-made"}
+  ]},
+  {"label":"By collection","pages":[
+    {"id":"o-womens","label":"Women's sale","url":"/category/offers/clearance/womens"},
+    {"id":"o-mens","label":"Men's sale","url":"/category/offers/clearance/mens"}
+  ]},
+  {"label":"By dress size","pages":[
+    {"id":"sz-8","label":"Size 8","url":"/offers/size-8"},
+    {"id":"sz-10","label":"Size 10","url":"/offers/size-10"},
+    {"id":"sz-12","label":"Size 12","url":"/offers/size-12"},
+    {"id":"sz-14","label":"Size 14","url":"/offers/size-14"},
+    {"id":"sz-16","label":"Size 16","url":"/offers/size-16"},
+    {"id":"sz-18","label":"Size 18","url":"/offers/size-18"}
+  ]},
+  {"label":"By size (XS–XXL)","pages":[
+    {"id":"sz-xs","label":"XS","url":"/offers/size-xs"},
+    {"id":"sz-s","label":"S","url":"/offers/size-s"},
+    {"id":"sz-m","label":"M","url":"/offers/size-m"},
+    {"id":"sz-l","label":"L","url":"/offers/size-l"},
+    {"id":"sz-xl","label":"XL","url":"/offers/size-xl"},
+    {"id":"sz-xxl","label":"XXL","url":"/offers/size-xxl"}
+  ]}
+]},
+{"id":"story","label":"About Us","color":"#888780","groups":[
+  {"label":"Our Heritage","pages":[
+    {"id":"st-journal","label":"The Journal","url":"/journal"},
+    {"id":"st-35yr","label":"35 years of Celtic & Co.","url":"/page/35-years"},
+    {"id":"st-kings","label":"King's Award","url":"/page/kings-award"},
+    {"id":"st-suppliers","label":"Our Suppliers","url":"/page/our-suppliers"},
+    {"id":"st-wool","label":"Campaign for Wool","url":"/page/campaign-for-wool"},
+    {"id":"br-sister","label":"Sister Brands","url":"/page/sister-brands"},
+    {"id":"br-about","label":"About us","url":"/page/about"},
+    {"id":"br-brit","label":"Made in Britain","url":"/page/made-in-britain"}
+  ]},
+  {"label":"Sustainability","pages":[
+    {"id":"st-bcorp","label":"B Corp™ Certified","url":"/page/bcorp"},
+    {"id":"st-workshop","label":"Our Cornish Workshop","url":"/page/cornish-workshop"},
+    {"id":"st-relived","label":"Celtic Relived","url":"/page/celtic-relived"},
+    {"id":"st-fibres","label":"Natural Fibres","url":"/page/natural-fibres"},
+    {"id":"st-circular","label":"Circular Fashion","url":"/page/circular-fashion"},
+    {"id":"br-env","label":"Environment & sustainability","url":"/page/environment"},
+    {"id":"br-materials","label":"Sustainable materials","url":"/page/sustainable-materials"}
+  ]},
+  {"label":"Shopping with us","pages":[
+    {"id":"br-contact","label":"Contact us","url":"/page/contact"},
+    {"id":"br-delivery","label":"Delivery","url":"/page/delivery"},
+    {"id":"br-returns","label":"Returns","url":"/page/returns"},
+    {"id":"br-faq","label":"FAQ's","url":"/page/faq"},
+    {"id":"br-size","label":"Size guide","url":"/page/size-guide"},
+    {"id":"br-care","label":"Care guide","url":"/page/care-guide"},
+    {"id":"br-shop","label":"Shopping with us","url":"/page/shop-with-us"},
+    {"id":"br-catalogue","label":"Catalogue request","url":"/page/catalogue"},
+    {"id":"st-scam","label":"Avoid Scam Sites","url":"/page/avoid-scam-sites"}
+  ]},
+  {"label":"Our Services","pages":[
+    {"id":"st-bespoke","label":"Bespoke Ordering","url":"/page/bespoke-ordering"},
+    {"id":"st-clickcollect","label":"Click & Collect","url":"/page/click-collect"},
+    {"id":"st-outlet","label":"Visit our Outlet Shop","url":"/offers"},
+    {"id":"ha-vouchers2","label":"Gift Vouchers","url":"/home-living/home-accessories/gift-vouchers"}
+  ]},
+  {"label":"Work with us","pages":[
+    {"id":"st-press","label":"Press & Media","url":"/page/press-media"},
+    {"id":"st-trade","label":"Trade","url":"/page/trade"},
+    {"id":"st-vacancies","label":"Vacancies","url":"/page/vacancies"}
+  ]},
+  {"label":"Legal & policies","pages":[
+    {"id":"br-login","label":"Login / account","url":"/account"},
+    {"id":"br-privacy","label":"Privacy & Cookie Policy","url":"/page/privacy"},
+    {"id":"br-terms","label":"Terms & conditions","url":"/page/terms"},
+    {"id":"st-technical","label":"Technical & Legal","url":"/page/technical-legal"},
+    {"id":"st-slavery","label":"Modern Slavery Act","url":"/page/modern-slavery-act"},
+    {"id":"st-policies","label":"Company Policies & Statements","url":"/page/company-policies"}
+  ]},
+  {"label":"Legacy / archived","pages":[
+    {"id":"br-xmas-old","label":"Christmas shop (old)","url":"/page/old-pages/christmas"},
+    {"id":"br-gifts-him","label":"Gifts for him (old)","url":"/old-pages/christmas-shop/gifts-for-him"},
+    {"id":"br-gifts-her","label":"Gifts for her (old)","url":"/old-pages/christmas-shop/gifts-for-her"},
+    {"id":"br-gifts-kids","label":"Gifts for kids (old)","url":"/old-pages/christmas-shop/gifts-for-kids"},
+    {"id":"br-stockings","label":"Stocking fillers (old)","url":"/old-pages/christmas-shop/stocking-fillers"}
+  ]},
+  {"label":"Departments","pages":[
+    {"id":"dept-womens","label":"Women's","url":"/category/womens"},
+    {"id":"dept-mens","label":"Men's","url":"/category/mens"},
+    {"id":"dept-home","label":"Homeware","url":"/home-living"},
+    {"id":"dept-kids","label":"Kidswear","url":"/kids"}
+  ]}
+]}
+]};
+
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+const NW   = 130;  // uniform node width (horizontal/top-down layout)
+const NH   = 28;
+const HG   = 14;   // horizontal gap between sibling nodes
+const VG   = 55;   // vertical gap between depth rows
+const NW_V = [116, 128, 158, 184]; // vertical mode node widths by depth
+const HG_V = 46;                    // vertical mode column gap
+const VG_V = 8;                     // vertical mode row gap
+const X_OFF_V = (()=>{ const a=[20]; for(let i=0;i<3;i++) a.push(a[i]+NW_V[i]+HG_V); return a; })();
+const CYCLE = [null,'keep','merge','cull'];
+const S_COLORS = {
+  keep:  {fill:'#dcfce7',stroke:'#4ade80',text:'#166534'},
+  merge: {fill:'#ffedd5',stroke:'#fb923c',text:'#9a3412'},
+  cull:  {fill:'#fee2e2',stroke:'#fca5a5',text:'#991b1b'},
+};
+const DOT_COLORS = {keep:'#4ade80',merge:'#fb923c',cull:'#f87171'};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let statuses  = {};
+let collapsed = {};
+let labels    = {};
+let customs   = []; // [{id, parentId, label}]  — user-added nodes
+let deleted   = {}; // id -> true for hidden original nodes
+let nodeOrder = {}; // parentId -> [orderedChildIds]
+let mergeLinks = []; // [{id1, id2}]
+let linkMode   = false;
+let linkPending = null;
+let editingId = null;
+let nodeMap   = {};
+let activeClickTimer = null;
+let activeClickNodeId = null;
+let dragJustHappened = false;
+let layoutMode = 'horizontal'; // 'horizontal' | 'vertical'
+let tiers = {}; // nodeId -> 1|2|3|4
+let tierMode = false;
+let tierFilter = null; // null = show all, 1|2|3|4 = show only that tier
+let notes = {}; // nodeId -> string[]
+let selectedNodeId = null;
+
+// ── TREE MODEL ────────────────────────────────────────────────────────────────
+let ROOT = null;
+let ALL_LEAVES = [];
+
+function buildTree() {
+  ROOT = {id:'__root__',label:'Celtic & Co',depth:0,color:'#1a1a1a',children:[],isLeaf:false,parentId:null};
+  ALL_LEAVES = [];
+  nodeMap = {};
+
+  function reg(n){ nodeMap[n.id]=n; }
+  reg(ROOT);
+
+  for (const s of SITEMAP.sections) {
+    if(deleted[s.id]) continue;
+    const sn={id:s.id,label:s.label,depth:1,color:s.color,children:[],isLeaf:false,parentId:'__root__'};
+    ROOT.children.push(sn); reg(sn);
+    for (const g of s.groups) {
+      const gid=s.id+'|'+g.label;
+      if(deleted[gid]) continue;
+      const gn={id:gid,label:g.label,depth:2,color:s.color,children:[],isLeaf:false,parentId:s.id};
+      sn.children.push(gn); reg(gn);
+      for (const p of g.pages) {
+        if(deleted[p.id]) continue;
+        const pn={id:p.id,label:p.label,depth:3,color:s.color,url:p.url,children:[],isLeaf:true,parentId:gid};
+        gn.children.push(pn); reg(pn);
+        ALL_LEAVES.push(pn);
+      }
+    }
+  }
+
+  // Inject custom nodes (in insertion order so parents precede children)
+  for (const cn of customs) {
+    const parent = nodeMap[cn.parentId];
+    if (!parent) continue;
+    const depth = Math.min(parent.depth + 1, 3);
+    const node = {id:cn.id,label:cn.label,depth,color:parent.color,
+                  children:[],isLeaf:true,isCustom:true,parentId:parent.id};
+    parent.children.push(node);
+    parent.isLeaf = false;
+    reg(node);
+    if (depth >= 3) ALL_LEAVES.push(node);
+  }
+
+  // Apply saved ordering
+  function applyOrder(node) {
+    const ord = nodeOrder[node.id];
+    if (ord && node.children.length > 1) {
+      node.children.sort((a,b) => {
+        const ai = ord.indexOf(a.id), bi = ord.indexOf(b.id);
+        return (ai===-1?Infinity:ai) - (bi===-1?Infinity:bi);
+      });
+    }
+    node.children.forEach(applyOrder);
+  }
+  applyOrder(ROOT);
+}
+
+// ── LAYOUT ────────────────────────────────────────────────────────────────────
+let treeW=0, treeH=0, visNodes=[];
+
+function vc(n){ return collapsed[n.id]?[]:n.children; }
+
+function doLayout(){ layoutMode==='vertical'?doLayoutV():doLayoutH(); }
+
+function doLayoutH(){
+  let leafX=20;
+  const VG3=4; // tight gap between vertically stacked leaf nodes
+  function lay(n){
+    n.lw=NW; n.lh=NH;
+    n.ly=n.depth*(NH+VG);
+    const ch=vc(n);
+    if(n.depth===2){
+      // Group node: occupy one horizontal slot; stack leaf children vertically
+      n.lx=leafX; leafX+=NW+HG;
+      const baseY=n.ly+NH+VG;
+      ch.forEach((c,i)=>{
+        c.lw=NW; c.lh=NH;
+        c.lx=n.lx;
+        c.ly=baseY+i*(NH+VG3);
+      });
+    } else if(ch.length===0){
+      n.lx=leafX; leafX+=NW+HG;
+    } else {
+      ch.forEach(lay);
+      n.lx=(ch[0].lx+ch[ch.length-1].lx)/2;
+    }
+  }
+  lay(ROOT);
+  function shift(n,d){ n.ly+=d; vc(n).forEach(c=>shift(c,d)); }
+  shift(ROOT,20);
+  visNodes=[]; function collect(n){ visNodes.push(n); vc(n).forEach(collect); } collect(ROOT);
+  treeW=Math.max(...visNodes.map(n=>n.lx+n.lw))+60;
+  treeH=Math.max(...visNodes.map(n=>n.ly+n.lh))+40;
+}
+
+function doLayoutV(){
+  let li=0;
+  function lay(n){
+    n.lx=X_OFF_V[Math.min(n.depth,3)];
+    n.lw=NW_V[Math.min(n.depth,3)];
+    n.lh=NH;
+    const ch=vc(n);
+    if(ch.length===0){ n.ly=li++*(NH+VG_V); }
+    else{ ch.forEach(lay); n.ly=(ch[0].ly+ch[ch.length-1].ly)/2; }
+  }
+  lay(ROOT);
+  function shift(n,d){ n.ly+=d; vc(n).forEach(c=>shift(c,d)); }
+  shift(ROOT,20);
+  visNodes=[]; function collect(n){ visNodes.push(n); vc(n).forEach(collect); } collect(ROOT);
+  treeW=Math.max(...visNodes.map(n=>n.lx+n.lw))+60;
+  treeH=Math.max(...visNodes.map(n=>n.ly+n.lh))+24;
+}
+
+// ── COLOUR HELPERS ────────────────────────────────────────────────────────────
+function hexRGB(h){ h=h.replace('#',''); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
+function mix(h1,h2,t){
+  const [r1,g1,b1]=hexRGB(h1),[r2,g2,b2]=hexRGB(h2);
+  return `rgb(${Math.round(r1+(r2-r1)*t)},${Math.round(g1+(g2-g1)*t)},${Math.round(b1+(b2-b1)*t)})`;
+}
+function nodeColors(n){
+  const st=statuses[n.id];
+  if(st) return S_COLORS[st];
+  const c=n.color||'#1a1a1a';
+  if(n.depth===0) return {fill:'#1a1a1a',stroke:'#1a1a1a',text:'#fff'};
+  if(n.depth===1) return {fill:c,stroke:c,text:'#fff'};
+  if(n.depth===2) return {fill:mix(c,'#ffffff',0.78),stroke:mix(c,'#ffffff',0.42),text:'#111'};
+  return {fill:mix(c,'#ffffff',0.93),stroke:mix(c,'#ffffff',0.60),text:'#333'};
+}
+
+// ── SVG HELPERS ───────────────────────────────────────────────────────────────
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs){ const e=document.createElementNS(NS,tag); if(attrs) for(const[k,v] of Object.entries(attrs)) e.setAttribute(k,String(v)); return e; }
+function txt(s,attrs){ const t=el('text',attrs); t.textContent=s; return t; }
+function trunc(s,w){ const max=Math.floor(w/6.5)-1; return s.length>max?s.slice(0,max)+'…':s; }
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+const scene=document.getElementById('scene');
+
+function render(){
+  doLayout();
+  scene.innerHTML='';
+
+  // Links
+  const lg=el('g',{opacity:0.55});
+  scene.appendChild(lg);
+  visNodes.forEach(n=>{
+    const children=vc(n);
+    if(layoutMode==='horizontal' && n.depth===2 && children.length>0){
+      // Stacked leaves: single vertical trunk from group bottom-center to last leaf mid
+      const cx=n.lx+n.lw/2;
+      const last=children[children.length-1];
+      lg.appendChild(el('path',{
+        d:`M${cx},${n.ly+n.lh}L${cx},${last.ly+last.lh/2}`,
+        stroke:'#c0bbb2','stroke-width':1.5,fill:'none'
+      }));
+    } else {
+      children.forEach(c=>{
+        let d;
+        if(layoutMode==='vertical'){
+          const x0=n.lx+n.lw,y0=n.ly+n.lh/2,x1=c.lx,y1=c.ly+c.lh/2,mx=(x0+x1)/2;
+          d=`M${x0},${y0}C${mx},${y0} ${mx},${y1} ${x1},${y1}`;
+        } else {
+          const x0=n.lx+n.lw/2,y0=n.ly+n.lh,x1=c.lx+c.lw/2,y1=c.ly,my=(y0+y1)/2;
+          d=`M${x0},${y0}C${x0},${my} ${x1},${my} ${x1},${y1}`;
+        }
+        lg.appendChild(el('path',{d,stroke:'#c0bbb2','stroke-width':1.5,fill:'none'}));
+      });
+    }
+  });
+
+  // Nodes
+  const ng=el('g');
+  scene.appendChild(ng);
+
+  visNodes.forEach(n=>{
+    const {fill,stroke,text:tc}=nodeColors(n);
+    const hasKids=n.children.length>0;
+    const isColl=collapsed[n.id];
+    const st=statuses[n.id];
+    const canAddChild=n.depth<=2; // only allow adding children at depth 0-2
+
+    const g=el('g',{transform:`translate(${n.lx},${n.ly})`,cursor:'pointer'});
+    ng.appendChild(g);
+
+    // Background
+    g.appendChild(el('rect',{width:n.lw,height:n.lh,rx:5,fill,stroke,'stroke-width':n.isCustom?2:2,
+      'stroke-dasharray':n.isCustom?'5,3':'none'}));
+
+    // Tier strip (left of node, visible when tierMode on)
+    const TIER_COLORS={1:'#EAB308',2:'#3B82F6',3:'#22C55E',4:'#A855F7'};
+    const nodeTier = tiers[n.id]||0;
+    const tierPad = tierMode ? 34 : 0;
+    if(tierMode){
+      const tcol = nodeTier ? TIER_COLORS[nodeTier] : '#e8e5e0';
+      const tstrip=el('rect',{x:16,y:1,width:18,height:n.lh-2,rx:3,fill:tcol,cursor:'pointer'});
+      const ttxt=txt(nodeTier?`T${nodeTier}`:'·',{x:25,y:n.lh/2,'font-size':nodeTier?8:11,
+        'font-weight':'700','dominant-baseline':'middle','text-anchor':'middle',
+        fill:nodeTier?'#fff':'#bbb','pointer-events':'none','font-family':'system-ui'});
+      tstrip.addEventListener('click',e=>{
+        e.stopPropagation();
+        const cur=tiers[n.id]||0;
+        const next=cur>=4?0:cur+1;
+        if(!next) delete tiers[n.id]; else tiers[n.id]=next;
+        render(); saveState();
+      });
+      tstrip.addEventListener('mousedown',e=>e.stopPropagation());
+      g.appendChild(tstrip); g.appendChild(ttxt);
+      if(nodeTier) g.appendChild(el('rect',{x:0,y:0,width:n.lw,height:n.lh,rx:5,
+        fill:'none',stroke:TIER_COLORS[nodeTier],'stroke-width':2,'pointer-events':'none'}));
+    }
+
+    // Label
+    const displayLabel=labels[n.id]!==undefined?labels[n.id]:n.label;
+    const labelX = st ? n.lw/2+tierPad/2-9 : n.lw/2+tierPad/2;
+    const lblW = n.lw - tierPad - (st?30:14);
+    g.appendChild(txt(trunc(displayLabel,lblW),{
+      x:labelX,y:n.lh/2,'font-size':11,fill:tc,
+      'dominant-baseline':'middle','text-anchor':'middle',
+      'font-family':'system-ui,-apple-system,sans-serif','pointer-events':'none'
+    }));
+
+    // Status dot
+    if(st) g.appendChild(el('circle',{cx:n.lw-10,cy:n.lh/2,r:5,fill:DOT_COLORS[st],'pointer-events':'none'}));
+
+    // Collapse toggle
+    if(hasKids){
+      const tgPos=layoutMode==='vertical'?`translate(${n.lw},${n.lh/2})`:`translate(${n.lw/2},${n.lh})`;
+      const tg=el('g',{transform:tgPos});
+      tg.appendChild(el('circle',{r:7,fill:'#f9f8f5',stroke:'#c0bbb2','stroke-width':1.5,cursor:'pointer'}));
+      tg.appendChild(txt(isColl?'+':'−',{x:0,y:0,'font-size':11,'dominant-baseline':'middle','text-anchor':'middle',fill:'#666','font-family':'system-ui,sans-serif','pointer-events':'none'}));
+      tg.addEventListener('click',e=>{ e.stopPropagation(); if(collapsed[n.id]) delete collapsed[n.id]; else collapsed[n.id]=true; render(); saveState(); updateStats(); });
+      tg.addEventListener('mousedown',e=>e.stopPropagation());
+      g.appendChild(tg);
+    }
+
+    // Collect hover-reveal elements
+    const hoverReveal=[];
+
+    // Drag-to-reorder: whole-node mousedown (depth > 0)
+    if(n.depth>0){
+      g.addEventListener('mousedown',e=>{
+        if(e.button!==0) return;
+        e.stopPropagation();
+        startNodeDrag(e,n);
+      });
+      // Grip icon — visual drag hint, pointer-events:none so events pass through to node
+      const grip=txt('⠿',{x:9,y:n.lh/2,'font-size':12,
+        'dominant-baseline':'middle','text-anchor':'middle',
+        fill:'#bbb','font-family':'system-ui',opacity:0,'pointer-events':'none'});
+      g.appendChild(grip);
+      hoverReveal.push(grip);
+    }
+
+    // Add-child button (depth 0-2, shown on hover)
+    if(canAddChild){
+      const ax=n.lw+10;
+      const addBtn=el('g',{transform:`translate(${ax},${n.lh/2})`,cursor:'pointer',opacity:0});
+      addBtn.appendChild(el('circle',{r:8,fill:'#eff6ff',stroke:'#93c5fd','stroke-width':1.5}));
+      addBtn.appendChild(txt('+',{x:0,y:0,'font-size':13,'dominant-baseline':'middle','text-anchor':'middle',fill:'#3b82f6','font-family':'system-ui,sans-serif','pointer-events':'none'}));
+      addBtn.addEventListener('click',e=>{ e.stopPropagation(); addChild(n); });
+      addBtn.addEventListener('mousedown',e=>e.stopPropagation());
+      g.appendChild(addBtn);
+      hoverReveal.push(addBtn);
+    }
+
+    // Edit button (shown on hover, all nodes except root)
+    if(n.depth>0){
+      const editBtn=el('g',{transform:`translate(${n.lw-8},${n.lh/2})`,cursor:'pointer',opacity:0});
+      editBtn.appendChild(el('circle',{r:6,fill:'#f8f7f3',stroke:'#c0bbb2','stroke-width':1.5}));
+      editBtn.appendChild(txt('✎',{x:0,y:0,'font-size':9,'dominant-baseline':'middle','text-anchor':'middle',fill:'#888','font-family':'system-ui,sans-serif','pointer-events':'none'}));
+      editBtn.addEventListener('click',e=>{ e.stopPropagation(); openEditor(n); });
+      editBtn.addEventListener('mousedown',e=>e.stopPropagation());
+      g.appendChild(editBtn);
+      hoverReveal.push(editBtn);
+    }
+
+    // Delete button (all nodes except root, shown on hover)
+    if(n.depth>0){
+      const delBtn=el('g',{transform:`translate(-8,${n.lh/2})`,cursor:'pointer',opacity:0});
+      delBtn.appendChild(el('circle',{r:7,fill:'#fff0f0',stroke:'#fca5a5','stroke-width':1.5}));
+      delBtn.appendChild(txt('×',{x:0,y:0,'font-size':13,'dominant-baseline':'middle','text-anchor':'middle',fill:'#ef4444','font-family':'system-ui,sans-serif','pointer-events':'none'}));
+      delBtn.addEventListener('click',e=>{
+        e.stopPropagation();
+        const lbl=labels[n.id]||n.label;
+        const msg=n.depth===1?`Delete the "${lbl}" section and all its contents?`
+                 :n.depth===2?`Delete the "${lbl}" group and all its pages?`
+                 :`Delete "${lbl}"?`;
+        if(!confirm(msg)) return;
+        if(n.isCustom) deleteCustom(n.id); else deleteOriginal(n.id);
+      });
+      delBtn.addEventListener('mousedown',e=>e.stopPropagation());
+      g.appendChild(delBtn);
+      hoverReveal.push(delBtn);
+    }
+
+    // Hover: reveal buttons + URL tooltip
+    const tip=document.getElementById('tip');
+    g.addEventListener('mouseenter',e=>{
+      hoverReveal.forEach(el=>el.setAttribute('opacity','1'));
+      if(n.depth===3&&n.url){ tip.textContent=n.url; tip.style.display='block'; moveTip(e); }
+    });
+    g.addEventListener('mousemove',moveTip);
+    g.addEventListener('mouseleave',()=>{
+      hoverReveal.forEach(el=>el.setAttribute('opacity','0'));
+      tip.style.display='none';
+    });
+
+    // Link-pending highlight ring
+    if(n.id===linkPending){
+      g.appendChild(el('rect',{x:-3,y:-3,width:n.lw+6,height:n.lh+6,rx:7,
+        fill:'none',stroke:'#f97316','stroke-width':2.5,
+        'stroke-dasharray':'5,3','pointer-events':'none'}));
+    }
+
+    // Tier filter: dim nodes not matching active tier filter
+    if(tierMode && tierFilter !== null){
+      const nt=tiers[n.id]||0;
+      if(nt !== tierFilter) g.setAttribute('opacity','0.12');
+    }
+
+    // Click: timer-based single (status) / double-click (edit label)
+    g.addEventListener('click',e=>{
+      if(dragJustHappened) return;
+      if(editingId) return;
+      if(linkMode&&n.depth>0){ handleLinkModeClick(n); return; }
+      selectNodeForNotes(n.id);
+      if(activeClickTimer && activeClickNodeId===n.id){
+        // Second click on same node = double-click → open editor
+        clearTimeout(activeClickTimer); activeClickTimer=null; activeClickNodeId=null;
+        openEditor(n);
+      } else {
+        // First click (or click on different node) → queue status cycle
+        if(activeClickTimer){ clearTimeout(activeClickTimer); cycleStatus(nodeMap[activeClickNodeId]); }
+        activeClickNodeId=n.id;
+        activeClickTimer=setTimeout(()=>{ activeClickTimer=null; activeClickNodeId=null; cycleStatus(n); },220);
+      }
+    });
+  });
+
+  // Merge link arcs
+  if(mergeLinks.length>0){
+    const mlg=el('g');
+    scene.appendChild(mlg);
+    for(const link of mergeLinks){
+      const n1=nodeMap[link.id1],n2=nodeMap[link.id2];
+      if(!n1||!n2) continue;
+      const x1=n1.lx+n1.lw/2,y1=n1.ly+n1.lh/2;
+      const x2=n2.lx+n2.lw/2,y2=n2.ly+n2.lh/2;
+      const mx=(x1+x2)/2,my=(y1+y2)/2;
+      const ddx=x2-x1,ddy=y2-y1;
+      const len=Math.sqrt(ddx*ddx+ddy*ddy)||1;
+      const offset=Math.min(80,len*0.35);
+      const cpx=mx-ddy/len*offset,cpy=my+ddx/len*offset;
+      const id1=link.id1,id2=link.id2;
+      const arc=el('path',{d:`M${x1},${y1} Q${cpx},${cpy} ${x2},${y2}`,
+        stroke:'#f97316','stroke-width':2.5,'stroke-dasharray':'6,4',fill:'none',cursor:'pointer'});
+      arc.addEventListener('click',e=>{ e.stopPropagation(); deleteMergeLink(id1,id2); });
+      mlg.appendChild(arc);
+      const lbl1=labels[link.id1]||n1.label,lbl2=labels[link.id2]||n2.label;
+      const bt=lbl1+' + '+lbl2;
+      const bw=bt.length*6+12,bh=16;
+      const bg=el('rect',{x:cpx-bw/2,y:cpy-bh/2,width:bw,height:bh,rx:3,
+        fill:'#fff7ed',stroke:'#f97316','stroke-width':1.5,cursor:'pointer'});
+      bg.addEventListener('click',e=>{ e.stopPropagation(); deleteMergeLink(id1,id2); });
+      mlg.appendChild(bg);
+      mlg.appendChild(txt(bt,{x:cpx,y:cpy,'font-size':9,fill:'#c2410c',
+        'dominant-baseline':'middle','text-anchor':'middle',
+        'font-family':'system-ui,-apple-system,sans-serif','pointer-events':'none'}));
+    }
+  }
+}
+
+function moveTip(e){ const t=document.getElementById('tip'); t.style.left=(e.clientX+14)+'px'; t.style.top=(e.clientY-28)+'px'; }
+
+// ── STATUS CYCLING ────────────────────────────────────────────────────────────
+function cycleStatus(n){
+  const cur=statuses[n.id]||null;
+  const next=CYCLE[(CYCLE.indexOf(cur)+1)%CYCLE.length];
+  if(!next) delete statuses[n.id]; else statuses[n.id]=next;
+  render(); saveState(); updateStats();
+}
+
+// ── ADD / DELETE CUSTOM NODES ─────────────────────────────────────────────────
+function addChild(parent){
+  const id='custom-'+Date.now();
+  customs.push({id,parentId:parent.id,label:'New item'});
+  delete collapsed[parent.id]; // expand parent
+  buildTree(); render(); saveState(); updateStats();
+  // Open editor after a short delay so the node is rendered
+  setTimeout(()=>{ const nn=nodeMap[id]; if(nn) openEditor(nn); },60);
+}
+
+function deleteCustom(id){
+  function descendants(nodeId){
+    const kids=customs.filter(c=>c.parentId===nodeId).map(c=>c.id);
+    return [nodeId,...kids.flatMap(descendants)];
+  }
+  const toDelete=new Set(descendants(id));
+  customs=customs.filter(c=>!toDelete.has(c.id));
+  mergeLinks=mergeLinks.filter(l=>!toDelete.has(l.id1)&&!toDelete.has(l.id2));
+  for(const did of toDelete){ delete statuses[did]; delete labels[did]; }
+  buildTree(); render(); saveState(); updateStats();
+}
+
+function deleteOriginal(id){
+  // Collect all descendant IDs from the current tree before removing
+  const node=nodeMap[id];
+  if(!node) return;
+  function collectIds(n){ const ids=[n.id]; n.children.forEach(c=>ids.push(...collectIds(c))); return ids; }
+  const toDelete=collectIds(node);
+  mergeLinks=mergeLinks.filter(l=>!toDelete.includes(l.id1)&&!toDelete.includes(l.id2));
+  for(const did of toDelete){
+    deleted[did]=true;
+    delete statuses[did]; delete labels[did];
+    // remove any custom nodes whose parent is being deleted
+    customs=customs.filter(c=>!toDelete.includes(c.parentId)&&c.id!==did);
+  }
+  buildTree(); render(); saveState(); updateStats();
+}
+
+// ── TIER MODE ─────────────────────────────────────────────────────────────────
+function toggleTierMode(){
+  tierMode=!tierMode;
+  const btn=document.getElementById('btn-tier');
+  if(btn) btn.classList.toggle('active',tierMode);
+  const filters=document.getElementById('tier-filters');
+  if(filters) filters.classList.toggle('show',tierMode);
+  if(!tierMode){ tierFilter=null; updateTierFilterBtns(); }
+  render(); saveState();
+}
+function setTierFilter(t){
+  tierFilter=(tierFilter===t)?null:t;
+  updateTierFilterBtns();
+  render(); saveState();
+}
+function updateTierFilterBtns(){
+  [1,2,3,4].forEach(t=>{
+    const b=document.getElementById('tf-'+t);
+    if(!b) return;
+    b.style.opacity=(tierFilter===null||tierFilter===t)?'1':'0.3';
+    b.style.transform=tierFilter===t?'scale(1.1)':'scale(1)';
+  });
+}
+
+// ── NOTES ─────────────────────────────────────────────────────────────────────
+function selectNodeForNotes(id){
+  selectedNodeId=id;
+  updateNotesPanel();
+}
+
+function updateNotesPanel(){
+  const panel=document.getElementById('notes-panel');
+  if(!selectedNodeId){ panel.style.display='none'; return; }
+  panel.style.display='block';
+  const n=nodeMap[selectedNodeId];
+  const lbl=labels[selectedNodeId]||(n?n.label:'');
+  
+  // Show editable node name
+  const nameDiv=document.getElementById('notes-node-name');
+  const nameDisplay=document.getElementById('notes-name-display');
+  const nameInput=document.getElementById('notes-node-label');
+  const editIcon=document.getElementById('notes-edit-icon');
+  
+  if(n && n.depth>0){
+    nameDiv.style.display='flex';
+    nameDisplay.textContent=lbl;
+    nameInput.style.display='none';
+    editIcon.title='Edit name';
+    
+    let isEditing=false;
+    const startEdit=()=>{
+      if(isEditing) return;
+      isEditing=true;
+      nameDiv.style.display='none';
+      nameInput.style.display='block';
+      nameInput.innerHTML='<input type="text" id="notes-name-input" value="'+lbl.replace(/"/g,'&quot;')+'">';
+      const inp=document.getElementById('notes-name-input');
+      inp.focus(); inp.select();
+      inp.addEventListener('keydown',e=>{
+        if(e.key==='Enter'){ inp.blur(); }
+        if(e.key==='Escape'){ cancelNameEdit(); }
+        e.stopPropagation();
+      });
+      inp.addEventListener('blur',()=>{
+        const val=inp.value.trim();
+        if(val && val!==lbl){ labels[selectedNodeId]=val; saveState(); }
+        isEditing=false;
+        updateNotesPanel();
+      });
+    };
+    const cancelNameEdit=()=>{
+      isEditing=false;
+      updateNotesPanel();
+    };
+    editIcon.onclick=startEdit;
+    nameDisplay.onclick=startEdit;
+  } else {
+    nameDiv.style.display='none';
+    nameInput.style.display='block';
+    nameInput.textContent=lbl;
+  }
+  
+  const nodeNotes=notes[selectedNodeId]||[];
+  document.getElementById('notes-empty').style.display=nodeNotes.length?'none':'block';
+  const list=document.getElementById('notes-list');
+  list.innerHTML='';
+  nodeNotes.forEach((note,i)=>{
+    const li=document.createElement('li');
+    const bullet=document.createElement('span');
+    bullet.className='note-bullet'; bullet.textContent='•';
+    const inp=document.createElement('input');
+    inp.type='text'; inp.className='note-text'; inp.value=note;
+    inp.addEventListener('change',()=>{
+      const val=inp.value.trim();
+      if(!notes[selectedNodeId]) notes[selectedNodeId]=[];
+      if(val) notes[selectedNodeId][i]=val; else notes[selectedNodeId].splice(i,1);
+      saveState(); updateNotesPanel();
+    });
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') inp.blur(); e.stopPropagation(); });
+    inp.addEventListener('mousedown',e=>e.stopPropagation());
+    const del=document.createElement('button');
+    del.className='note-del'; del.textContent='×';
+    del.addEventListener('click',()=>{ notes[selectedNodeId].splice(i,1); saveState(); updateNotesPanel(); });
+    li.appendChild(bullet); li.appendChild(inp); li.appendChild(del);
+    list.appendChild(li);
+  });
+}
+
+// ── LAYOUT TOGGLE ─────────────────────────────────────────────────────────────
+function setLayout(mode){
+  layoutMode=mode;
+  if(linkMode){ linkMode=false; linkPending=null; const lb=document.getElementById('btn-link'); if(lb) lb.classList.remove('active'); }
+  document.getElementById('btn-layout-h').classList.toggle('active',mode==='horizontal');
+  document.getElementById('btn-layout-v').classList.toggle('active',mode==='vertical');
+  document.getElementById('canvas').style.cursor='grab';
+  render(); fitToView(); saveState();
+}
+
+// ── MERGE LINK FEATURE ────────────────────────────────────────────────────────
+function toggleLinkMode(){
+  linkMode=!linkMode;
+  linkPending=null;
+  const btn=document.getElementById('btn-link');
+  if(btn) btn.classList.toggle('active',linkMode);
+  document.getElementById('canvas').style.cursor=linkMode?'crosshair':'grab';
+  if(linkMode) toast('Click two nodes to link them for merging');
+  else render();
+}
+
+function handleLinkModeClick(n){
+  if(!linkPending){
+    linkPending=n.id;
+    render();
+    toast('Now click a second node to link with "'+( labels[n.id]||n.label)+'"');
+  } else if(linkPending===n.id){
+    linkPending=null;
+    render();
+  } else {
+    const id1=linkPending,id2=n.id;
+    linkPending=null;
+    linkMode=false;
+    const btn=document.getElementById('btn-link');
+    if(btn) btn.classList.remove('active');
+    document.getElementById('canvas').style.cursor='grab';
+    createMergeLink(id1,id2);
+  }
+}
+
+function createMergeLink(id1,id2){
+  if(mergeLinks.some(l=>(l.id1===id1&&l.id2===id2)||(l.id1===id2&&l.id2===id1))){
+    toast('These nodes are already linked'); return;
+  }
+  mergeLinks.push({id1,id2});
+  statuses[id1]='merge';
+  statuses[id2]='merge';
+  buildTree(); render(); saveState(); updateStats();
+  toast('Linked! Both nodes set to Merge status');
+}
+
+function deleteMergeLink(id1,id2){
+  mergeLinks=mergeLinks.filter(l=>!((l.id1===id1&&l.id2===id2)||(l.id1===id2&&l.id2===id1)));
+  render(); saveState();
+  toast('Link removed');
+}
+
+// ── DRAG TO REORDER ───────────────────────────────────────────────────────────
+let dragState = null; // {node, startX, startY, isDragging, dropTarget}
+
+function startNodeDrag(e, n) {
+  cancelEdit();
+  if(activeClickTimer){ clearTimeout(activeClickTimer); activeClickTimer=null; }
+  dragState = {node:n, startX:e.clientX, startY:e.clientY, isDragging:false, dropTarget:null};
+}
+
+function handleDragMove(e) {
+  if (!dragState) return;
+  const dx = e.clientX - dragState.startX, dy = e.clientY - dragState.startY;
+  if (!dragState.isDragging) {
+    if (Math.sqrt(dx*dx+dy*dy) < 8) return;
+    dragState.isDragging = true;
+    if(activeClickTimer){ clearTimeout(activeClickTimer); activeClickTimer=null; }
+    // Show ghost
+    const n = dragState.node;
+    const gh = document.getElementById('drag-ghost');
+    gh.textContent = labels[n.id]||n.label;
+    gh.style.width  = Math.round(n.lw*sc)+'px';
+    gh.style.height = Math.round(n.lh*sc)+'px';
+    gh.style.lineHeight = Math.round(n.lh*sc)+'px';
+    gh.style.fontSize = Math.max(10,Math.round(11*sc))+'px';
+    gh.style.display = 'flex';
+    document.body.style.cursor = 'grabbing';
+  }
+  // Move ghost to cursor
+  const gh = document.getElementById('drag-ghost');
+  gh.style.left = (e.clientX - Math.round((dragState.node.lw*sc)/2)) + 'px';
+  gh.style.top  = (e.clientY - Math.round((dragState.node.lh*sc)/2)) + 'px';
+  findDropTarget(e.clientX, e.clientY);
+}
+
+function findDropTarget(clientX, clientY) {
+  const node = dragState.node;
+  const parent = nodeMap[node.parentId];
+  if (!parent) return;
+  const siblings = vc(parent);
+  if (siblings.length <= 1) { hideDropLine(); return; }
+
+  const cv = document.getElementById('canvas');
+  const r = cv.getBoundingClientRect();
+  const dragIdx = siblings.indexOf(node);
+
+  let insertIdx = 0;
+  if(layoutMode==='vertical'){
+    // Vertical layout: siblings stacked by Y — compare cursor Y
+    for (let i = 0; i < siblings.length; i++) {
+      if (clientY > siblings[i].ly*sc+ty+r.top + (siblings[i].lh*sc)/2) insertIdx = i+1;
+    }
+  } else {
+    // Horizontal layout: siblings spread by X — compare cursor X
+    for (let i = 0; i < siblings.length; i++) {
+      if (clientX > siblings[i].lx*sc+tx+r.left + (siblings[i].lw*sc)/2) insertIdx = i+1;
+    }
+  }
+
+  if (insertIdx === dragIdx || insertIdx === dragIdx+1) {
+    dragState.dropTarget = null; hideDropLine(); return;
+  }
+  dragState.dropTarget = {parentId: parent.id, insertIdx};
+
+  if(layoutMode==='vertical'){
+    // Horizontal drop indicator line
+    let lineY;
+    if (insertIdx <= 0) lineY = siblings[0].ly*sc+ty+r.top - 4;
+    else if (insertIdx >= siblings.length) { const last=siblings[siblings.length-1]; lineY=last.ly*sc+ty+r.top+last.lh*sc+4; }
+    else { const a=siblings[insertIdx-1],b=siblings[insertIdx]; lineY=((a.ly+a.lh)*sc+ty+r.top+b.ly*sc+ty+r.top)/2; }
+    showDropLine(node.lx*sc+tx+r.left, lineY, Math.round(node.lw*sc), 3);
+  } else {
+    // Vertical drop indicator line
+    let lineX;
+    if (insertIdx <= 0) lineX = siblings[0].lx*sc+tx+r.left - 4;
+    else if (insertIdx >= siblings.length) { const last=siblings[siblings.length-1]; lineX=(last.lx+last.lw)*sc+tx+r.left+4; }
+    else { const a=siblings[insertIdx-1],b=siblings[insertIdx]; lineX=((a.lx+a.lw)*sc+tx+r.left+b.lx*sc+tx+r.left)/2; }
+    showDropLine(lineX, node.ly*sc+ty+r.top, 3, Math.round(node.lh*sc));
+  }
+}
+
+function showDropLine(x,y,w,h){
+  const dl=document.getElementById('drop-line');
+  dl.style.display='block'; dl.style.left=x+'px'; dl.style.top=y+'px';
+  dl.style.width=w+'px'; dl.style.height=h+'px';
+}
+function hideDropLine(){ document.getElementById('drop-line').style.display='none'; }
+
+function handleDragEnd(e) {
+  if (!dragState) return;
+  const wasDragging = dragState.isDragging;
+  const dt = dragState.dropTarget;
+  const node = dragState.node;
+
+  // Clean up visuals
+  document.getElementById('drag-ghost').style.display='none';
+  hideDropLine();
+  document.body.style.cursor='';
+  dragState = null;
+
+  if (!wasDragging) return;
+  dragJustHappened=true;
+  requestAnimationFrame(()=>{ dragJustHappened=false; });
+  if (!dt) return;
+  e.stopPropagation();
+
+  const parent = nodeMap[dt.parentId];
+  if (!parent) return;
+  const siblings = [...vc(parent)];
+  const dragIdx = siblings.indexOf(node);
+  if (dragIdx === -1) return;
+
+  siblings.splice(dragIdx, 1);
+  let idx = dt.insertIdx;
+  if (idx > dragIdx) idx--;
+  siblings.splice(idx, 0, node);
+
+  nodeOrder[dt.parentId] = siblings.map(n=>n.id);
+  buildTree(); render(); saveState();
+}
+
+// ── INLINE LABEL EDITOR ───────────────────────────────────────────────────────
+function openEditor(n){
+  cancelEdit();
+  const cv=document.getElementById('canvas');
+  const r=cv.getBoundingClientRect();
+  const sx=Math.round(n.lx*sc+tx+r.left);
+  const sy=Math.round(n.ly*sc+ty+r.top);
+  const ed=document.getElementById('editor');
+  const inp=document.getElementById('editor-input');
+  ed.style.cssText=`display:flex;left:${sx}px;top:${sy}px;width:${Math.round(n.lw*sc)}px;height:${Math.round(n.lh*sc)}px;`;
+  inp.style.fontSize=Math.max(10,Math.round(11*sc))+'px';
+  inp.value=labels[n.id]!==undefined?labels[n.id]:n.label;
+  ed.dataset.nodeId=n.id;
+  editingId=n.id;
+  inp.focus(); inp.select();
+}
+function commitEdit(){
+  const ed=document.getElementById('editor');
+  const inp=document.getElementById('editor-input');
+  const nodeId=ed.dataset.nodeId;
+  const val=inp.value.trim();
+  ed.style.display='none'; editingId=null;
+  if(nodeId&&val){ labels[nodeId]=val; render(); saveState(); }
+}
+function cancelEdit(){ document.getElementById('editor').style.display='none'; editingId=null; }
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+function updateStats(){
+  const k=ALL_LEAVES.filter(n=>statuses[n.id]==='keep').length;
+  const m=ALL_LEAVES.filter(n=>statuses[n.id]==='merge').length;
+  const c=ALL_LEAVES.filter(n=>statuses[n.id]==='cull').length;
+  const rev=k+m+c;
+  document.getElementById('stats').textContent=`${rev}/${ALL_LEAVES.length} pages · Keep ${k} · Merge ${m} · Cull ${c}`;
+}
+
+// ── STATE PERSISTENCE ─────────────────────────────────────────────────────────
+function saveState(){
+  const payload={s:statuses,c:collapsed,l:labels,u:customs,d:deleted,o:nodeOrder,ml:mergeLinks,lm:layoutMode,ti:tiers,no:notes,tm:tierMode?1:0,tf:tierFilter};
+  try{ history.replaceState(null,'','#'+btoa(unescape(encodeURIComponent(JSON.stringify(payload))))); }catch(_){}
+}
+function loadState(){
+  const hash=location.hash.slice(1);
+  if(!hash) return false;
+  try{
+    const p=JSON.parse(decodeURIComponent(escape(atob(hash))));
+    statuses=p.s||{}; collapsed=p.c||{}; labels=p.l||{}; customs=p.u||[]; deleted=p.d||{}; nodeOrder=p.o||{}; mergeLinks=p.ml||[]; layoutMode=p.lm||'horizontal'; tiers=p.ti||{}; notes=p.no||{}; tierMode=!!(p.tm); tierFilter=p.tf||null;
+    return true;
+  }catch(_){ return false; }
+}
+
+// ── SHARE ─────────────────────────────────────────────────────────────────────
+function share(){
+  saveState();
+  const url=location.href;
+  if(navigator.clipboard){ navigator.clipboard.writeText(url).then(()=>toast('Link copied to clipboard!')).catch(()=>fallbackCopy(url)); }
+  else { fallbackCopy(url); }
+}
+function fallbackCopy(url){
+  const i=document.createElement('textarea'); i.value=url; document.body.appendChild(i); i.select();
+  try{ document.execCommand('copy'); toast('Link copied!'); }catch(_){ toast('Copy the URL from the address bar'); }
+  document.body.removeChild(i);
+}
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
+
+// ── PAN + ZOOM ────────────────────────────────────────────────────────────────
+let tx=0,ty=0,sc=1;
+let drag=false,dsx=0,dsy=0,dtx=0,dty=0;
+
+function applyXform(){ scene.setAttribute('transform',`translate(${tx},${ty}) scale(${sc})`); }
+function fitToView(){
+  const cv=document.getElementById('canvas');
+  const cw=cv.clientWidth,ch=cv.clientHeight;
+  sc=Math.min(cw/treeW,ch/treeH)*0.92; sc=Math.min(sc,1);
+  tx=(cw-treeW*sc)/2; ty=(ch-treeH*sc)/2;
+  applyXform();
+}
+function setupPanZoom(){
+  const cv=document.getElementById('canvas');
+  cv.addEventListener('wheel',e=>{
+    e.preventDefault(); cancelEdit();
+    const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+    const f=e.deltaY<0?1.12:1/1.12,ns=Math.max(0.1,Math.min(4,sc*f));
+    tx=mx-(mx-tx)*(ns/sc); ty=my-(my-ty)*(ns/sc); sc=ns; applyXform();
+  },{passive:false});
+  cv.addEventListener('mousedown',e=>{
+    if(e.button!==0) return; cancelEdit();
+    drag=true; dsx=e.clientX; dsy=e.clientY; dtx=tx; dty=ty; cv.classList.add('dragging');
+  });
+  window.addEventListener('mousemove',e=>{
+    if(dragState){ handleDragMove(e); return; }
+    if(!drag) return; tx=dtx+e.clientX-dsx; ty=dty+e.clientY-dsy; applyXform();
+  });
+  window.addEventListener('mouseup',e=>{
+    if(dragState){ handleDragEnd(e); return; }
+    drag=false; document.getElementById('canvas').classList.remove('dragging');
+  });
+  // Touch
+  let pt1=null,pt2=null,psc=1,ptx=0,pty=0;
+  cv.addEventListener('touchstart',e=>{
+    if(e.touches.length===1){ pt1=e.touches[0]; drag=true; dsx=pt1.clientX; dsy=pt1.clientY; dtx=tx; dty=ty; }
+    else if(e.touches.length===2){ pt1=e.touches[0]; pt2=e.touches[1]; psc=sc; ptx=tx; pty=ty; drag=false; }
+    e.preventDefault();
+  },{passive:false});
+  cv.addEventListener('touchmove',e=>{
+    if(e.touches.length===1&&drag){ tx=dtx+e.touches[0].clientX-dsx; ty=dty+e.touches[0].clientY-dsy; applyXform(); }
+    else if(e.touches.length===2&&pt2){
+      const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;
+      const dx0=pt1.clientX-pt2.clientX,dy0=pt1.clientY-pt2.clientY;
+      const ns=Math.max(0.1,Math.min(4,psc*Math.sqrt(dx*dx+dy*dy)/Math.sqrt(dx0*dx0+dy0*dy0)));
+      const mx=(e.touches[0].clientX+e.touches[1].clientX)/2,my=(e.touches[0].clientY+e.touches[1].clientY)/2;
+      const mx0=(pt1.clientX+pt2.clientX)/2,my0=(pt1.clientY+pt2.clientY)/2;
+      tx=mx-(mx0-ptx)*(ns/psc); ty=my-(my0-pty)*(ns/psc); sc=ns; applyXform();
+    }
+    e.preventDefault();
+  },{passive:false});
+  cv.addEventListener('touchend',()=>{ drag=false; pt2=null; });
+}
+
+// ── HEADER ACTIONS ────────────────────────────────────────────────────────────
+function expandAll(){ collapsed={}; render(); fitToView(); saveState(); updateStats(); }
+function overview(){
+  collapsed={};
+  function collapseGroups(n){ if(n.depth===2) collapsed[n.id]=true; else n.children.forEach(collapseGroups); }
+  collapseGroups(ROOT);
+  render(); fitToView(); saveState(); updateStats();
+}
+function resetAll(){
+  if(!confirm('Clear all statuses, reordering and restore any deleted sections?')) return;
+  statuses={}; deleted={}; nodeOrder={}; mergeLinks=[]; linkMode=false; linkPending=null; layoutMode='horizontal'; tiers={}; tierMode=false; tierFilter=null; notes={}; selectedNodeId=null;
+  const linkBtn=document.getElementById('btn-link'); if(linkBtn) linkBtn.classList.remove('active');
+  const tierBtn=document.getElementById('btn-tier'); if(tierBtn) tierBtn.classList.remove('active');
+  const filtersDiv=document.getElementById('tier-filters'); if(filtersDiv) filtersDiv.classList.remove('show');
+  updateTierFilterBtns();
+  document.getElementById('btn-layout-h').classList.add('active');
+  document.getElementById('btn-layout-v').classList.remove('active');
+  document.getElementById('canvas').style.cursor='grab';
+  document.getElementById('notes-panel').style.display='none';
+  buildTree(); render(); fitToView(); saveState(); updateStats();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+buildTree();
+const hadState=loadState();
+buildTree(); // rebuild after loading customs from state
+
+if(!hadState){
+  ROOT.children.forEach(s=>s.children.forEach(g=>{ collapsed[g.id]=true; }));
+}
+
+render();
+fitToView();
+setupPanZoom();
+updateStats();
+
+document.getElementById('btn-overview').addEventListener('click',overview);
+document.getElementById('btn-expand').addEventListener('click',expandAll);
+document.getElementById('btn-reset').addEventListener('click',resetAll);
+document.getElementById('btn-share').addEventListener('click',share);
+document.getElementById('btn-link').addEventListener('click',toggleLinkMode);
+document.getElementById('btn-tier').addEventListener('click',toggleTierMode);
+document.getElementById('btn-layout-h').addEventListener('click',()=>setLayout('horizontal'));
+document.getElementById('btn-layout-v').addEventListener('click',()=>setLayout('vertical'));
+// Sync button active states after state load
+document.getElementById('btn-layout-h').classList.toggle('active',layoutMode==='horizontal');
+document.getElementById('btn-layout-v').classList.toggle('active',layoutMode==='vertical');
+document.getElementById('btn-tier').classList.toggle('active',tierMode);
+// Tier filter buttons
+[1,2,3,4].forEach(t=>{ const b=document.getElementById('tf-'+t); if(b) b.addEventListener('click',()=>setTierFilter(t)); });
+const tierFiltersDiv=document.getElementById('tier-filters');
+if(tierFiltersDiv) tierFiltersDiv.classList.toggle('show',tierMode);
+updateTierFilterBtns();
+// Notes panel
+document.getElementById('notes-add-btn').addEventListener('click',()=>{
+  if(!selectedNodeId) return;
+  if(!notes[selectedNodeId]) notes[selectedNodeId]=[];
+  notes[selectedNodeId].push('');
+  saveState(); updateNotesPanel();
+  const inputs=document.getElementById('notes-list').querySelectorAll('input.note-text');
+  if(inputs.length) inputs[inputs.length-1].focus();
+});
+
+const edInp=document.getElementById('editor-input');
+edInp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); commitEdit(); } if(e.key==='Escape') cancelEdit(); e.stopPropagation(); });
+edInp.addEventListener('blur',()=>setTimeout(commitEdit,80));
+</script>
+</body>
+</html>
